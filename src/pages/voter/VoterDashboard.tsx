@@ -70,6 +70,8 @@ const VoterDashboard = () => {
     }
 
     try {
+      blockchain.setDemoReset(false); // Reset the demo flag before voting
+      
       // Use Promise.all to handle multiple blockchain transactions
       await Promise.all(
         Object.entries(votes).map(([level, candidateId]) => {
@@ -95,7 +97,7 @@ const VoterDashboard = () => {
       if (blockchain.hasVoted(voterId)) {
         toast({
           title: "Already Voted",
-          description: "You have already cast your vote. Please reset the demo to vote again.",
+          description: "This voter has already cast their vote. Please reset the demo or use a different voter ID to vote again.",
           variant: "destructive",
         });
       } else {

@@ -10,6 +10,7 @@ export class VotingBlockchain {
   private static instance: VotingBlockchain;
   private _voteVerifier: VoteVerifier;
   private votedVoters: Set<string> = new Set();
+  private demoReset: boolean = false;
 
   constructor() {
     if (VotingBlockchain.instance) {
@@ -78,7 +79,7 @@ export class VotingBlockchain {
   }
 
   public hasVoted(voterId: string): boolean {
-    return this.votedVoters.has(voterId);
+    return !this.demoReset && this.votedVoters.has(voterId);
   }
 
   public addBlock(candidateId: string, voterId: string): void {
@@ -117,7 +118,11 @@ export class VotingBlockchain {
 
     newBlock.hash = mineBlock(newBlock, this.difficulty);
     this.chain.push(newBlock);
-    this.votedVoters.add(voterId);
+    
+    if (!this.demoReset) {
+      this.votedVoters.add(voterId);
+    }
+    
     saveChainToStorage(this.chain);
   }
 
@@ -186,8 +191,13 @@ export class VotingBlockchain {
     this.chain = this.chain.slice(0, 1);
     this.votedVoters.clear();
     this.isVotingEnded = false;
+    this.demoReset = true;
     clearBlockchainStorage();
     saveChainToStorage(this.chain);
+  }
+
+  public setDemoReset(reset: boolean): void {
+    this.demoReset = reset;
   }
 
   public static getInstance(): VotingBlockchain {
