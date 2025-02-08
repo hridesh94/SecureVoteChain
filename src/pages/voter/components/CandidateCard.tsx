@@ -1,6 +1,6 @@
 
 import { motion } from "framer-motion";
-import { Check, MapPin, Building2, User, FileText } from "lucide-react";
+import { CircleCheck, MapPin, Building2, User, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Candidate } from "../types";
 
@@ -22,26 +22,41 @@ const CandidateCard = ({
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
       className={`
-        p-6 rounded-lg border cursor-pointer transition-colors relative
+        p-6 rounded-lg border cursor-pointer transition-all duration-200 relative
         ${
           isSelected
-            ? "border-primary bg-primary/5"
+            ? "border-primary bg-primary/5 shadow-lg"
             : "border-white/20 hover:border-primary/50"
         }
       `}
       onClick={() => onSelect(candidate.id)}
     >
       {isSelected && (
-        <div className="absolute top-4 right-4">
-          <Check className="w-6 h-6 text-primary" />
-        </div>
+        <motion.div 
+          initial={{ scale: 0, opacity: 0 }} 
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 260,
+            damping: 20 
+          }}
+          className="absolute top-4 right-4 bg-primary rounded-full p-1"
+        >
+          <CircleCheck className="w-6 h-6 text-white" />
+        </motion.div>
       )}
       <div className="flex items-center gap-4 mb-4">
-        <img 
+        <motion.img 
           src={candidate.photo} 
           alt={candidate.name}
           className="w-16 h-16 rounded-full object-cover"
+          animate={isSelected ? { 
+            scale: [1, 1.1, 1],
+            borderColor: ["#ffffff", "#1D1D1F", "#1D1D1F"]
+          } : {}}
+          transition={{ duration: 0.3 }}
         />
         <div>
           <div className="flex items-center gap-2">
@@ -50,13 +65,21 @@ const CandidateCard = ({
           </div>
         </div>
       </div>
-      <h3 className="font-semibold mb-2">{candidate.name}</h3>
-      <p className="text-sm text-primary/70 mb-2">{candidate.party}</p>
-      <div className="flex items-center gap-2 text-sm text-primary/60 mb-2">
-        <MapPin className="w-4 h-4" />
-        <span>{candidate.constituency}</span>
-      </div>
-      <p className="text-sm text-primary/70 mb-2">Position: {candidate.position}</p>
+      <motion.div
+        animate={isSelected ? { 
+          x: [0, 5, 0],
+          transition: { duration: 0.3 }
+        } : {}}
+      >
+        <h3 className="font-semibold mb-2">{candidate.name}</h3>
+        <p className="text-sm text-primary/70 mb-2">{candidate.party}</p>
+        <div className="flex items-center gap-2 text-sm text-primary/60 mb-2">
+          <MapPin className="w-4 h-4" />
+          <span>{candidate.constituency}</span>
+        </div>
+        <p className="text-sm text-primary/70 mb-2">Position: {candidate.position}</p>
+      </motion.div>
+
       <Button
         variant="ghost"
         size="sm"
@@ -110,3 +133,4 @@ const CandidateCard = ({
 };
 
 export default CandidateCard;
+
