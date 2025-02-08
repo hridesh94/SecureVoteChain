@@ -1,10 +1,16 @@
 
 import { useState } from "react";
-import { Search, Download, UserCheck, UserX } from "lucide-react";
+import { Search, Download, UserCheck, UserX, Filter } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Voter {
   id: string;
@@ -12,9 +18,12 @@ interface Voter {
   status: "registered" | "voted" | "blocked";
   registrationDate: string;
   lastActivity: string;
+  location?: string;
+  loginAttempts?: number;
+  ipAddress?: string;
 }
 
-// Mock data - replace with actual data later
+// Enhanced mock data with more details
 const mockVoters: Voter[] = [
   {
     id: "V001",
@@ -22,6 +31,9 @@ const mockVoters: Voter[] = [
     status: "voted",
     registrationDate: "2024-02-15",
     lastActivity: "2024-02-20",
+    location: "New York",
+    loginAttempts: 2,
+    ipAddress: "192.168.1.1",
   },
   {
     id: "V002",
@@ -29,28 +41,64 @@ const mockVoters: Voter[] = [
     status: "registered",
     registrationDate: "2024-02-16",
     lastActivity: "2024-02-19",
+    location: "Los Angeles",
+    loginAttempts: 1,
+    ipAddress: "192.168.1.2",
   },
-  // Add more mock data as needed
+  {
+    id: "V003",
+    name: "Alice Johnson",
+    status: "blocked",
+    registrationDate: "2024-02-14",
+    lastActivity: "2024-02-18",
+    location: "Chicago",
+    loginAttempts: 5,
+    ipAddress: "192.168.1.3",
+  },
 ];
 
 const VoterList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [voters, setVoters] = useState<Voter[]>(mockVoters);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const { toast } = useToast();
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-    const filtered = mockVoters.filter(
+    filterVoters(value, statusFilter);
+  };
+
+  const handleStatusFilter = (status: string) => {
+    setStatusFilter(status);
+    filterVoters(searchTerm, status);
+  };
+
+  const filterVoters = (search: string, status: string) => {
+    let filtered = mockVoters.filter(
       (voter) =>
-        voter.name.toLowerCase().includes(value.toLowerCase()) ||
-        voter.id.toLowerCase().includes(value.toLowerCase())
+        (voter.name.toLowerCase().includes(search.toLowerCase()) ||
+          voter.id.toLowerCase().includes(search.toLowerCase()) ||
+          voter.location?.toLowerCase().includes(search.toLowerCase())) &&
+        (status === "all" || voter.status === status)
     );
     setVoters(filtered);
   };
 
   const handleExport = () => {
+    const headers = [
+      "ID",
+      "Name",
+      "Status",
+      "Registration Date",
+      "Last Activity",
+      "Location",
+      "Login Attempts",
+      "IP Address",
+    ];
+
     const csvContent =
-      "ID,Name,Status,Registration Date,Last Activity\n" +
+      headers.join(",") +
+      "\n" +
       voters
         .map((voter) =>
           [
@@ -59,6 +107,9 @@ const VoterList = () => {
             voter.status,
             voter.registrationDate,
             voter.lastActivity,
+            voter.location || "",
+            voter.loginAttempts || "0",
+            voter.ipAddress || "",
           ].join(",")
         )
         .join("\n");
@@ -86,6 +137,7 @@ const VoterList = () => {
           ? {
               ...voter,
               status: voter.status === "blocked" ? "registered" : "blocked",
+              lastActivity: new Date().toISOString().split("T")[0],
             }
           : voter
       )
@@ -99,15 +151,39 @@ const VoterList = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="relative w-64">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search voters..."
-            value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="pl-8"
-          />
+      <div className="flex justify-between items-center gap-4">
+        <div className="flex items-center gap-4">
+          <div className="relative w-64">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search voters..."
+              value={searchTerm}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="pl-8"
+            />
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="w-4 h-4 mr-2" />
+                Filter Status
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => handleStatusFilter("all")}>
+                All
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusFilter("registered")}>
+                Registered
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusFilter("voted")}>
+                Voted
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusFilter("blocked")}>
+                Blocked
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <Button variant="outline" onClick={handleExport}>
           <Download className="w-4 h-4 mr-2" />
@@ -122,8 +198,11 @@ const VoterList = () => {
               <TableHead>ID</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Location</TableHead>
               <TableHead>Registration Date</TableHead>
               <TableHead>Last Activity</TableHead>
+              <TableHead>Login Attempts</TableHead>
+              <TableHead>IP Address</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -145,8 +224,11 @@ const VoterList = () => {
                     {voter.status}
                   </span>
                 </TableCell>
+                <TableCell>{voter.location}</TableCell>
                 <TableCell>{voter.registrationDate}</TableCell>
                 <TableCell>{voter.lastActivity}</TableCell>
+                <TableCell>{voter.loginAttempts || 0}</TableCell>
+                <TableCell>{voter.ipAddress}</TableCell>
                 <TableCell>
                   <Button
                     variant="ghost"
@@ -170,3 +252,4 @@ const VoterList = () => {
 };
 
 export default VoterList;
+
