@@ -16,6 +16,7 @@ export class VotingBlockchain {
   private isVotingEnded: boolean = false;
   private static instance: VotingBlockchain;
   private _voteVerifier: VoteVerifier;
+  private votedVoters: Set<string> = new Set();
 
   constructor() {
     if (VotingBlockchain.instance) {
@@ -26,7 +27,16 @@ export class VotingBlockchain {
     if (this.chain.length === 0) {
       this.createGenesisBlock();
     }
+    this.initializeVotedVoters();
     VotingBlockchain.instance = this;
+  }
+
+  private initializeVotedVoters(): void {
+    this.chain.forEach(block => {
+      if (block.vote.voterId !== "genesis") {
+        this.votedVoters.add(block.vote.voterId);
+      }
+    });
   }
 
   get voteVerifier(): VoteVerifier {
@@ -96,9 +106,17 @@ export class VotingBlockchain {
     return this.chain[this.chain.length - 1];
   }
 
+  public hasVoted(voterId: string): boolean {
+    return this.votedVoters.has(voterId);
+  }
+
   public addBlock(candidateId: string, voterId: string): void {
     if (this.isVotingEnded) {
       throw new Error("Voting has ended");
+    }
+
+    if (this.hasVoted(voterId)) {
+      throw new Error("Voter has already cast their vote");
     }
 
     // Create and verify vote signature
@@ -130,6 +148,7 @@ export class VotingBlockchain {
 
     newBlock.hash = this.mineBlock(newBlock);
     this.chain.push(newBlock);
+    this.votedVoters.add(voterId);
     this.saveChain();
   }
 

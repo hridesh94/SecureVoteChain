@@ -64,6 +64,17 @@ const VoterDashboard = () => {
 
     try {
       const voterId = `V${Date.now()}`;
+      
+      // Check if voter has already voted
+      if (blockchain.hasVoted(voterId)) {
+        toast({
+          title: "Vote Already Cast",
+          description: "You have already participated in this election.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       Object.entries(votes).forEach(([level, candidateId]) => {
         if (candidateId) {
           blockchain.addBlock(candidateId, voterId);
@@ -84,7 +95,7 @@ const VoterDashboard = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "There was an error recording your votes. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error recording your votes. Please try again.",
         variant: "destructive",
       });
       console.error("Voting error:", error);
@@ -217,4 +228,3 @@ const VoterDashboard = () => {
 };
 
 export default VoterDashboard;
-

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Voter } from "@/types/voter";
@@ -8,16 +7,25 @@ import {
   filterVoters,
   exportVotersToCSV 
 } from "@/utils/voterUtils";
+import { VotingBlockchain } from "@/utils/votingBlockchain";
 
 export const useVoters = (showVotes = false) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [voters, setVoters] = useState<Voter[]>(mockVoters);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { toast } = useToast();
+  const blockchain = VotingBlockchain.getInstance();
 
   useEffect(() => {
     const updateVoters = () => {
-      setVoters(prev => updateVotersFromBlockchain(prev));
+      setVoters(prev => {
+        const updated = updateVotersFromBlockchain(prev);
+        // Update voter status based on blockchain data
+        return updated.map(voter => ({
+          ...voter,
+          status: blockchain.hasVoted(voter.id) ? "voted" : voter.status
+        }));
+      });
     };
 
     updateVoters();
