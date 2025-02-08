@@ -1,19 +1,26 @@
 
-import { UserCheck, UserX } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Voter } from "@/types/voter";
+import VoterActions from "../VoterActions";
 
 interface VoterTableRowProps {
   voter: Voter;
   showVotes?: boolean;
   onToggleStatus: (voterId: string) => void;
+  onRemoveVoter?: (voterId: string) => void;
+  onResetAttempts?: (voterId: string) => void;
 }
 
-const VoterTableRow = ({ voter, showVotes = false, onToggleStatus }: VoterTableRowProps) => {
+const VoterTableRow = ({ 
+  voter, 
+  showVotes = false, 
+  onToggleStatus,
+  onRemoveVoter = () => {},
+  onResetAttempts = () => {}
+}: VoterTableRowProps) => {
   return (
     <TableRow className="border-t hover:bg-muted/50">
-      <TableCell className="p-2 align-middle [&:has([role=checkbox])]:pr-0">{voter.id}</TableCell>
+      <TableCell className="p-2 align-middle">{voter.id}</TableCell>
       <TableCell className="p-2 align-middle">{voter.name}</TableCell>
       <TableCell className="p-2 align-middle">
         <span
@@ -39,20 +46,17 @@ const VoterTableRow = ({ voter, showVotes = false, onToggleStatus }: VoterTableR
         </TableCell>
       )}
       <TableCell className="p-2 align-middle">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleStatus(voter.id)}
-        >
-          {voter.status === "blocked" ? (
-            <UserCheck className="w-4 h-4 text-green-500" />
-          ) : (
-            <UserX className="w-4 h-4 text-red-500" />
-          )}
-        </Button>
+        <VoterActions
+          voterId={voter.id}
+          isBlocked={voter.status === "blocked"}
+          onBlock={onToggleStatus}
+          onRemove={onRemoveVoter}
+          onReset={onResetAttempts}
+        />
       </TableCell>
     </TableRow>
   );
 };
 
 export default VoterTableRow;
+

@@ -8,9 +8,17 @@ interface VoterTableProps {
   voters: Voter[];
   showVotes?: boolean;
   onToggleStatus: (voterId: string) => void;
+  onRemoveVoter?: (voterId: string) => void;
+  onResetAttempts?: (voterId: string) => void;
 }
 
-const VoterTable = ({ voters, showVotes = false, onToggleStatus }: VoterTableProps) => {
+const VoterTable = ({ 
+  voters, 
+  showVotes = false, 
+  onToggleStatus,
+  onRemoveVoter,
+  onResetAttempts
+}: VoterTableProps) => {
   return (
     <div className="relative w-full overflow-auto">
       <div className="rounded-md border">
@@ -23,6 +31,8 @@ const VoterTable = ({ voters, showVotes = false, onToggleStatus }: VoterTablePro
                 voter={voter}
                 showVotes={showVotes}
                 onToggleStatus={onToggleStatus}
+                onRemoveVoter={onRemoveVoter}
+                onResetAttempts={onResetAttempts}
               />
             ))}
           </TableBody>
@@ -33,3 +43,4 @@ const VoterTable = ({ voters, showVotes = false, onToggleStatus }: VoterTablePro
 };
 
 export default VoterTable;
+
