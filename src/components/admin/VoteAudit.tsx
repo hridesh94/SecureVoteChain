@@ -41,8 +41,7 @@ const VoteAudit = () => {
 
     // Verify vote signatures
     votes.forEach((block, index) => {
-      const verifier = blockchain.voteVerifier;
-      if (!verifier.verifyVote(block.vote)) {
+      if (!blockchain.verifyVoteSignature(block.vote)) {
         irregularities.push(`Invalid vote signature detected at block ${index + 1}`);
         isValid = false;
       }

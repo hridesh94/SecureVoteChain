@@ -62,6 +62,10 @@ export class VotingBlockchain {
     return this.voteManager.hasVoted(voterId);
   }
 
+  public verifyVoteSignature(verifiedVote: VerifiedVote): boolean {
+    return this.voteManager.verifyVoteSignature(verifiedVote);
+  }
+
   public addBlock(candidateId: string, voterId: string): void {
     if (this.blockchainState.isVotingComplete()) {
       throw new Error("Voting has ended");
