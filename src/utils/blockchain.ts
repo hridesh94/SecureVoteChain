@@ -16,9 +16,9 @@ export interface Block {
 export class VotingBlockchain {
   private chain: Block[] = [];
   private difficulty: number = 4;
+  private isVotingEnded: boolean = false;
 
   constructor() {
-    // Create genesis block
     this.createGenesisBlock();
   }
 
@@ -102,5 +102,39 @@ export class VotingBlockchain {
   public getChain(): Block[] {
     return this.chain;
   }
-}
 
+  public getVotingResults(): { [candidateId: string]: number } {
+    if (!this.isVotingEnded) {
+      return {};
+    }
+
+    const results: { [candidateId: string]: number } = {};
+    this.chain.forEach((block) => {
+      if (block.vote.candidateId !== "genesis") {
+        results[block.vote.candidateId] = (results[block.vote.candidateId] || 0) + 1;
+      }
+    });
+    return results;
+  }
+
+  public getAnonymizedVotes(): { timestamp: number; candidateId: string }[] {
+    if (!this.isVotingEnded) {
+      return [];
+    }
+
+    return this.chain
+      .filter(block => block.vote.candidateId !== "genesis")
+      .map(block => ({
+        timestamp: block.timestamp,
+        candidateId: block.vote.candidateId
+      }));
+  }
+
+  public setVotingEnded(ended: boolean): void {
+    this.isVotingEnded = ended;
+  }
+
+  public isVotingComplete(): boolean {
+    return this.isVotingEnded;
+  }
+}

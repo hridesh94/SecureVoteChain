@@ -10,7 +10,9 @@ import {
   Clock,
   RefreshCw,
   Download,
-  Ban
+  Ban,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -34,6 +36,8 @@ const votingData = [
 
 const AdminDashboard = () => {
   const [isVotingActive, setIsVotingActive] = useState(true);
+  const [showResults, setShowResults] = useState(false);
+  const [votingResults, setVotingResults] = useState<{ [key: string]: number }>({});
   const [stats, setStats] = useState({
     totalVoters: 1500,
     votesCast: 0,
@@ -57,16 +61,41 @@ const AdminDashboard = () => {
       remainingVoters,
       votingProgress,
     }));
-  }, []);
+
+    if (!isVotingActive) {
+      const results = blockchain.getVotingResults();
+      setVotingResults(results);
+    }
+  }, [isVotingActive]);
 
   const handleVotingToggle = () => {
-    setIsVotingActive(!isVotingActive);
+    const newVotingState = !isVotingActive;
+    setIsVotingActive(newVotingState);
+    blockchain.setVotingEnded(!newVotingState);
+    
+    if (!newVotingState) {
+      const results = blockchain.getVotingResults();
+      setVotingResults(results);
+    }
+
     toast({
-      title: isVotingActive ? "Voting Stopped" : "Voting Started",
-      description: isVotingActive
-        ? "The voting process has been stopped."
-        : "The voting process has been started.",
+      title: newVotingState ? "Voting Started" : "Voting Ended",
+      description: newVotingState
+        ? "The voting process has been started."
+        : "The voting process has ended. Results are now available.",
     });
+  };
+
+  const handleToggleResults = () => {
+    if (!isVotingActive) {
+      setShowResults(!showResults);
+    } else {
+      toast({
+        title: "Cannot Show Results",
+        description: "Voting must end before results can be displayed.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleRefreshData = () => {
@@ -82,6 +111,11 @@ const AdminDashboard = () => {
       votingProgress,
     }));
 
+    if (!isVotingActive) {
+      const results = blockchain.getVotingResults();
+      setVotingResults(results);
+    }
+
     toast({
       title: "Data Refreshed",
       description: "Latest voting statistics have been loaded.",
@@ -89,8 +123,15 @@ const AdminDashboard = () => {
   };
 
   const handleExportData = () => {
-    const chain = blockchain.getChain();
-    const jsonStr = JSON.stringify(chain, null, 2);
+    const data = isVotingActive 
+      ? blockchain.getChain().map(block => ({
+          timestamp: block.timestamp,
+          hash: block.hash,
+          previousHash: block.previousHash
+        }))
+      : blockchain.getChain();
+
+    const jsonStr = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -123,7 +164,7 @@ const AdminDashboard = () => {
   ) : (
     <div className="flex items-center text-red-500">
       <div className="w-2 h-2 rounded-full bg-red-500 mr-2" />
-      Stopped
+      Ended
     </div>
   );
 
@@ -179,11 +220,30 @@ const AdminDashboard = () => {
                 <Ban className="w-4 h-4 mr-2" />
                 Block Voter
               </Button>
+              {!isVotingActive && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleResults}
+                >
+                  {showResults ? (
+                    <>
+                      <EyeOff className="w-4 h-4 mr-2" />
+                      Hide Results
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-4 h-4 mr-2" />
+                      Show Results
+                    </>
+                  )}
+                </Button>
+              )}
               <Button
                 onClick={handleVotingToggle}
                 variant={isVotingActive ? "destructive" : "default"}
               >
-                {isVotingActive ? "Stop Voting" : "Start Voting"}
+                {isVotingActive ? "End Voting" : "Start Voting"}
               </Button>
             </div>
           </div>
@@ -230,6 +290,20 @@ const AdminDashboard = () => {
               </div>
             </div>
 
+            {!isVotingActive && showResults && (
+              <div className="p-6 rounded-lg border border-white/20">
+                <h3 className="font-semibold mb-4">Voting Results</h3>
+                <div className="space-y-4">
+                  {Object.entries(votingResults).map(([candidateId, votes]) => (
+                    <div key={candidateId} className="flex justify-between items-center">
+                      <span>Candidate {candidateId}</span>
+                      <span className="font-semibold">{votes} votes</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <VotingChart data={votingData} />
               <SecurityOverview stats={stats} />
@@ -237,7 +311,7 @@ const AdminDashboard = () => {
 
             <div className="p-6 rounded-lg border border-white/20">
               <h3 className="font-semibold mb-4">Voter Management</h3>
-              <VoterList />
+              <VoterList showVotes={!isVotingActive && showResults} />
             </div>
           </div>
         </motion.div>

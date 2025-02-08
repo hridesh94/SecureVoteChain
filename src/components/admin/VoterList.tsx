@@ -21,9 +21,9 @@ interface Voter {
   location?: string;
   loginAttempts?: number;
   ipAddress?: string;
+  vote?: string;
 }
 
-// Enhanced mock data with more details
 const mockVoters: Voter[] = [
   {
     id: "V001",
@@ -34,6 +34,7 @@ const mockVoters: Voter[] = [
     location: "New York",
     loginAttempts: 2,
     ipAddress: "192.168.1.1",
+    vote: "C001"
   },
   {
     id: "V002",
@@ -43,7 +44,7 @@ const mockVoters: Voter[] = [
     lastActivity: "2024-02-19",
     location: "Los Angeles",
     loginAttempts: 1,
-    ipAddress: "192.168.1.2",
+    ipAddress: "192.168.1.2"
   },
   {
     id: "V003",
@@ -54,10 +55,15 @@ const mockVoters: Voter[] = [
     location: "Chicago",
     loginAttempts: 5,
     ipAddress: "192.168.1.3",
+    vote: "C002"
   },
 ];
 
-const VoterList = () => {
+interface VoterListProps {
+  showVotes?: boolean;
+}
+
+const VoterList = ({ showVotes = false }: VoterListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [voters, setVoters] = useState<Voter[]>(mockVoters);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -94,6 +100,7 @@ const VoterList = () => {
       "Location",
       "Login Attempts",
       "IP Address",
+      ...(showVotes ? ["Vote"] : []),
     ];
 
     const csvContent =
@@ -110,6 +117,7 @@ const VoterList = () => {
             voter.location || "",
             voter.loginAttempts || "0",
             voter.ipAddress || "",
+            ...(showVotes ? [voter.vote || ""] : []),
           ].join(",")
         )
         .join("\n");
@@ -203,6 +211,7 @@ const VoterList = () => {
               <TableHead>Last Activity</TableHead>
               <TableHead>Login Attempts</TableHead>
               <TableHead>IP Address</TableHead>
+              {showVotes && <TableHead>Vote</TableHead>}
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -229,6 +238,11 @@ const VoterList = () => {
                 <TableCell>{voter.lastActivity}</TableCell>
                 <TableCell>{voter.loginAttempts || 0}</TableCell>
                 <TableCell>{voter.ipAddress}</TableCell>
+                {showVotes && (
+                  <TableCell>
+                    {voter.vote ? `Candidate ${voter.vote}` : "Not voted"}
+                  </TableCell>
+                )}
                 <TableCell>
                   <Button
                     variant="ghost"
@@ -252,4 +266,3 @@ const VoterList = () => {
 };
 
 export default VoterList;
-
