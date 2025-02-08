@@ -49,6 +49,16 @@ const InputOTPSlot = React.forwardRef<React.ElementRef<"div">, InputOTPSlotProps
       }
     }, [slot?.isActive])
 
+    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+      e.preventDefault()
+      const pastedText = e.clipboardData.getData('text/plain')
+      const numericOnly = pastedText.replace(/\D/g, '')
+      
+      if (numericOnly && inputOTPContext?.setValue) {
+        inputOTPContext.setValue(numericOnly)
+      }
+    }
+
     return (
       <div
         ref={ref}
@@ -134,15 +144,7 @@ const InputOTPSlot = React.forwardRef<React.ElementRef<"div">, InputOTPSlotProps
               }
             }
           }}
-          onPaste={(e) => {
-            e.preventDefault()
-            const pastedText = e.clipboardData.getData('text/plain')
-            const numericOnly = pastedText.replace(/\D/g, '')
-            
-            if (numericOnly && inputOTPContext?.handlePaste) {
-              inputOTPContext.handlePaste(numericOnly)
-            }
-          }}
+          onPaste={handlePaste}
           onFocus={(e) => e.target.select()}
         />
       </div>
