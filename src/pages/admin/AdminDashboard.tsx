@@ -1,10 +1,23 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, BarChart, Lock, Users } from "lucide-react";
+import { ArrowLeft, BarChart, Lock, Users, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts";
 
 const mockStats = {
   totalVoters: 1500,
@@ -12,6 +25,15 @@ const mockStats = {
   remainingVoters: 624,
   votingProgress: 58.4,
 };
+
+const votingData = [
+  { time: "9 AM", votes: 150 },
+  { time: "10 AM", votes: 280 },
+  { time: "11 AM", votes: 420 },
+  { time: "12 PM", votes: 550 },
+  { time: "1 PM", votes: 676 },
+  { time: "2 PM", votes: 876 },
+];
 
 const AdminDashboard = () => {
   const [isVotingActive, setIsVotingActive] = useState(true);
@@ -26,6 +48,18 @@ const AdminDashboard = () => {
         : "The voting process has been started.",
     });
   };
+
+  const votingStatus = isVotingActive ? (
+    <div className="flex items-center text-green-500">
+      <div className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse" />
+      Active
+    </div>
+  ) : (
+    <div className="flex items-center text-red-500">
+      <div className="w-2 h-2 rounded-full bg-red-500 mr-2" />
+      Stopped
+    </div>
+  );
 
   return (
     <div className="min-h-screen w-full bg-secondary p-4">
@@ -49,7 +83,10 @@ const AdminDashboard = () => {
               <div className="p-3 rounded-full bg-primary/5">
                 <Lock className="w-6 h-6 text-primary" />
               </div>
-              <h1 className="text-2xl font-semibold ml-4">Admin Dashboard</h1>
+              <div className="ml-4">
+                <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
+                {votingStatus}
+              </div>
             </div>
             <Button
               onClick={handleVotingToggle}
@@ -100,17 +137,73 @@ const AdminDashboard = () => {
             </motion.div>
           </div>
 
-          <div className="p-6 rounded-lg border border-white/20">
-            <h3 className="font-semibold mb-4">Voting Progress</h3>
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div
-                className="bg-primary h-2.5 rounded-full transition-all duration-500"
-                style={{ width: `${mockStats.votingProgress}%` }}
-              ></div>
+          <div className="grid gap-6 mb-8">
+            <div className="p-6 rounded-lg border border-white/20">
+              <h3 className="font-semibold mb-4">Voting Progress</h3>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                <div
+                  className="bg-primary h-2.5 rounded-full transition-all duration-500"
+                  style={{ width: `${mockStats.votingProgress}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-between text-sm text-primary/70">
+                <p>{mockStats.votingProgress}% of total votes cast</p>
+                <p>{mockStats.remainingVoters} votes remaining</p>
+              </div>
             </div>
-            <p className="text-sm text-primary/70 mt-2">
-              {mockStats.votingProgress}% of total votes cast
-            </p>
+
+            <div className="p-6 rounded-lg border border-white/20">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-semibold">Voting Trends</h3>
+                <div className="flex items-center text-sm text-primary/70">
+                  <AlertCircle className="w-4 h-4 mr-2" />
+                  Updated every hour
+                </div>
+              </div>
+              <div className="h-[300px]">
+                <ChartContainer
+                  className="w-full h-full"
+                  config={{
+                    votes: {
+                      theme: {
+                        light: "hsl(var(--primary))",
+                        dark: "hsl(var(--primary))",
+                      },
+                    },
+                  }}
+                >
+                  <AreaChart data={votingData}>
+                    <defs>
+                      <linearGradient id="colorVotes" x1="0" y1="0" x2="0" y2="1">
+                        <stop
+                          offset="5%"
+                          stopColor="hsl(var(--primary))"
+                          stopOpacity={0.3}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="hsl(var(--primary))"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                    <XAxis dataKey="time" />
+                    <YAxis />
+                    <ChartTooltip>
+                      <ChartTooltipContent />
+                    </ChartTooltip>
+                    <Area
+                      type="monotone"
+                      dataKey="votes"
+                      stroke="hsl(var(--primary))"
+                      fillOpacity={1}
+                      fill="url(#colorVotes)"
+                    />
+                  </AreaChart>
+                </ChartContainer>
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -119,4 +212,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-
