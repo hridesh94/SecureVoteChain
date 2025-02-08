@@ -1,3 +1,4 @@
+
 import VotingProgress from "@/components/admin/VotingProgress";
 import VotingResults from "@/components/admin/VotingResults";
 import VotingChart from "@/components/admin/VotingChart";
@@ -28,30 +29,27 @@ const DashboardContent = ({
 }: DashboardContentProps) => {
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="space-y-8">
-          <VotingProgress
-            votingProgress={stats.votingProgress}
-            remainingVoters={stats.remainingVoters}
-          />
-          <VotingChart data={votingData} />
+      <VotingProgress
+        votingProgress={stats.votingProgress}
+        remainingVoters={stats.remainingVoters}
+      />
+      
+      <div className="flex gap-8">
+        <div className="flex items-center gap-4">
+          <button className="bg-primary/90 text-white px-4 py-3 rounded-lg hover:bg-primary transition-colors flex items-center justify-center gap-2">
+            <Shield className="w-4 h-4" />
+            Perform Audit
+          </button>
+          <button className="border border-primary/20 px-4 py-3 rounded-lg hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
+            <FileSpreadsheet className="w-4 h-4" />
+            Export Audit Trail
+          </button>
         </div>
-        <div className="space-y-8">
-          <SecurityOverview stats={stats} />
-          <div className="p-6 rounded-lg border border-white/20 backdrop-blur-sm">
-            <h3 className="font-semibold mb-4 text-lg">Vote Audit System</h3>
-            <div className="flex flex-col gap-4">
-              <button className="bg-primary/90 text-white px-4 py-3 rounded-lg hover:bg-primary transition-colors flex items-center justify-center gap-2">
-                <Shield className="w-4 h-4" />
-                Perform Audit
-              </button>
-              <button className="border border-primary/20 px-4 py-3 rounded-lg hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
-                <FileSpreadsheet className="w-4 h-4" />
-                Export Audit Trail
-              </button>
-            </div>
-          </div>
-        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-8">
+        <VotingChart data={votingData} />
+        <SecurityOverview stats={stats} />
       </div>
 
       {!isVotingActive && showResults && (
@@ -69,3 +67,4 @@ const DashboardContent = ({
 };
 
 export default DashboardContent;
+
