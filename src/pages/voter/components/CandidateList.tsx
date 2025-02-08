@@ -25,14 +25,16 @@ const CandidateList = ({
 }: CandidateListProps) => {
   if (candidates.length === 0) {
     return (
-      <div className="text-center py-8 text-primary/70">
-        Please select your constituency to view available candidates
+      <div className="text-center py-12 px-4 bg-white/50 rounded-lg border border-white/20 backdrop-blur-sm">
+        <p className="text-primary/70 text-lg">
+          Please select your constituency to view available candidates
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {candidates.map((candidate) => (
         <CandidateCard
           key={candidate.id}

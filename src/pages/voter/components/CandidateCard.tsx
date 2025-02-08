@@ -24,7 +24,7 @@ const CandidateCard = ({
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className={`
-        p-6 rounded-lg border cursor-pointer transition-all duration-200 relative
+        p-6 rounded-lg border cursor-pointer transition-all duration-200 relative bg-card backdrop-blur-sm
         ${
           isSelected
             ? "border-primary bg-primary/5 shadow-lg"
@@ -51,7 +51,7 @@ const CandidateCard = ({
         <motion.img 
           src={candidate.photo} 
           alt={candidate.name}
-          className="w-16 h-16 rounded-full object-cover"
+          className="w-16 h-16 rounded-full object-cover border-2"
           animate={isSelected ? { 
             scale: [1, 1.1, 1],
             borderColor: ["#ffffff", "#1D1D1F", "#1D1D1F"]
@@ -71,8 +71,8 @@ const CandidateCard = ({
           transition: { duration: 0.3 }
         } : {}}
       >
-        <h3 className="font-semibold mb-2">{candidate.name}</h3>
-        <p className="text-sm text-primary/70 mb-2">{candidate.party}</p>
+        <h3 className="font-semibold text-lg mb-2">{candidate.name}</h3>
+        <p className="text-sm text-primary/70 mb-2 font-medium">{candidate.party}</p>
         <div className="flex items-center gap-2 text-sm text-primary/60 mb-2">
           <MapPin className="w-4 h-4" />
           <span>{candidate.constituency}</span>
@@ -83,7 +83,7 @@ const CandidateCard = ({
       <Button
         variant="ghost"
         size="sm"
-        className="mt-2"
+        className="mt-2 w-full hover:bg-primary/5"
         onClick={(e) => {
           e.stopPropagation();
           onToggleDetails(candidate.id);
@@ -133,4 +133,3 @@ const CandidateCard = ({
 };
 
 export default CandidateCard;
-
