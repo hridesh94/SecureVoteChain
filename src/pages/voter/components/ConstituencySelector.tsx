@@ -10,16 +10,18 @@ import {
 import { mockPollingStations } from "../mockData";
 
 interface ConstituencySelectorProps {
-  currentLevel: "local" | "provincial" | "federal";
-  selectedConstituency: string | null;
-  onConstituencySelect: (value: string) => void;
+  selectedPollingStation: string | null;
+  onPollingStationSelect: (value: string) => void;
 }
 
 const ConstituencySelector = ({
-  currentLevel,
-  selectedConstituency,
-  onConstituencySelect,
+  selectedPollingStation,
+  onPollingStationSelect,
 }: ConstituencySelectorProps) => {
+  const selectedStation = selectedPollingStation 
+    ? mockPollingStations.find(ps => ps.id === selectedPollingStation)
+    : null;
+
   return (
     <div className="mb-6">
       <div className="flex items-center gap-2 mb-4">
@@ -27,13 +29,8 @@ const ConstituencySelector = ({
         <h2 className="text-lg font-semibold">Select Your Polling Station</h2>
       </div>
       <Select
-        value={selectedConstituency || ''}
-        onValueChange={(value) => {
-          const pollingStation = mockPollingStations.find(ps => ps.id === value);
-          if (pollingStation) {
-            onConstituencySelect(pollingStation.constituencies[currentLevel].id);
-          }
-        }}
+        value={selectedPollingStation || ''}
+        onValueChange={onPollingStationSelect}
       >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Select your polling station" />
@@ -50,13 +47,17 @@ const ConstituencySelector = ({
           ))}
         </SelectContent>
       </Select>
-      {selectedConstituency && (
-        <div className="mt-4 text-sm text-primary/70">
-          Your {currentLevel} constituency: {
-            mockPollingStations.find(ps => 
-              ps.constituencies[currentLevel].id === selectedConstituency
-            )?.constituencies[currentLevel].name
-          }
+      {selectedStation && (
+        <div className="mt-4 space-y-2">
+          <div className="text-sm text-primary/70">
+            Your local constituency: {selectedStation.constituencies.local.name}
+          </div>
+          <div className="text-sm text-primary/70">
+            Your provincial constituency: {selectedStation.constituencies.provincial.name}
+          </div>
+          <div className="text-sm text-primary/70">
+            Your federal constituency: {selectedStation.constituencies.federal.name}
+          </div>
         </div>
       )}
     </div>

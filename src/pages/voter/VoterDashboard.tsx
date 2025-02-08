@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { VotingBlockchain } from "@/utils/blockchain";
-import { mockCandidates } from "./mockData";
+import { mockCandidates, mockPollingStations } from "./mockData";
 import VoteSuccess from "./components/VoteSuccess";
 import ProgressTracker from "./components/ProgressTracker";
 import ConstituencySelector from "./components/ConstituencySelector";
@@ -15,17 +15,8 @@ import CandidateList from "./components/CandidateList";
 const blockchain = VotingBlockchain.getInstance();
 
 const VoterDashboard = () => {
+  const [selectedPollingStation, setSelectedPollingStation] = useState<string | null>(null);
   const [votes, setVotes] = useState<{
-    local: string | null;
-    provincial: string | null;
-    federal: string | null;
-  }>({
-    local: null,
-    provincial: null,
-    federal: null,
-  });
-  
-  const [selectedConstituencies, setSelectedConstituencies] = useState<{
     local: string | null;
     provincial: string | null;
     federal: string | null;
@@ -40,15 +31,14 @@ const VoterDashboard = () => {
   const [currentLevel, setCurrentLevel] = useState<"local" | "provincial" | "federal">("local");
   const { toast } = useToast();
 
-  const handleConstituencySelect = (value: string) => {
-    setSelectedConstituencies(prev => ({
-      ...prev,
-      [currentLevel]: value
-    }));
-    setVotes(prev => ({
-      ...prev,
-      [currentLevel]: null
-    }));
+  const handlePollingStationSelect = (stationId: string) => {
+    setSelectedPollingStation(stationId);
+    // Reset votes when polling station changes
+    setVotes({
+      local: null,
+      provincial: null,
+      federal: null,
+    });
   };
 
   const handleVote = () => {
@@ -86,7 +76,7 @@ const VoterDashboard = () => {
       
       console.log("Votes recorded:", {
         votes,
-        constituencies: selectedConstituencies,
+        pollingStation: selectedPollingStation,
         chain: blockchain.getChain()
       });
     } catch (error) {
@@ -117,10 +107,16 @@ const VoterDashboard = () => {
     }
   };
 
+  const selectedStation = selectedPollingStation 
+    ? mockPollingStations.find(ps => ps.id === selectedPollingStation)
+    : null;
+
   const filteredCandidates = mockCandidates.filter(
-    candidate => 
-      candidate.level === currentLevel && 
-      candidate.id.startsWith(selectedConstituencies[currentLevel] || '')
+    candidate => {
+      if (!selectedStation) return false;
+      return candidate.level === currentLevel && 
+             candidate.id.startsWith(selectedStation.constituencies[currentLevel].id);
+    }
   );
 
   if (hasVoted) {
@@ -151,34 +147,39 @@ const VoterDashboard = () => {
             <h1 className="text-2xl font-semibold ml-4">मतदान डास्बोर्ड (Voter Dashboard)</h1>
           </div>
 
-          <ProgressTracker 
-            currentLevel={currentLevel}
-            votes={votes}
-            setCurrentLevel={setCurrentLevel}
-          />
+          {selectedPollingStation && (
+            <ProgressTracker 
+              currentLevel={currentLevel}
+              votes={votes}
+              setCurrentLevel={setCurrentLevel}
+            />
+          )}
 
           <ConstituencySelector
-            currentLevel={currentLevel}
-            selectedConstituency={selectedConstituencies[currentLevel]}
-            onConstituencySelect={handleConstituencySelect}
+            selectedPollingStation={selectedPollingStation}
+            onPollingStationSelect={handlePollingStationSelect}
           />
 
-          <CandidateList
-            candidates={filteredCandidates}
-            currentLevel={currentLevel}
-            votes={votes}
-            showDetails={showDetails}
-            onSelectCandidate={handleSelectCandidate}
-            onToggleDetails={(id) => setShowDetails(showDetails === id ? null : id)}
-          />
+          {selectedPollingStation && (
+            <>
+              <CandidateList
+                candidates={filteredCandidates}
+                currentLevel={currentLevel}
+                votes={votes}
+                showDetails={showDetails}
+                onSelectCandidate={handleSelectCandidate}
+                onToggleDetails={(id) => setShowDetails(showDetails === id ? null : id)}
+              />
 
-          <Button
-            onClick={handleVote}
-            className="w-full bg-primary hover:bg-primary/90"
-            disabled={!votes.local || !votes.provincial || !votes.federal}
-          >
-            Submit All Votes (सबै मतहरू पेश गर्नुहोस्)
-          </Button>
+              <Button
+                onClick={handleVote}
+                className="w-full bg-primary hover:bg-primary/90"
+                disabled={!votes.local || !votes.provincial || !votes.federal}
+              >
+                Submit All Votes (सबै मतहरू पेश गर्नुहोस्)
+              </Button>
+            </>
+          )}
         </motion.div>
       </div>
     </div>
