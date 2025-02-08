@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 const AdminAuth = () => {
   const [employeeId, setEmployeeId] = useState("");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,10 +23,7 @@ const AdminAuth = () => {
       return;
     }
     // TODO: Implement actual authentication logic
-    toast({
-      title: "Authentication Pending",
-      description: "This feature will be implemented in the next version.",
-    });
+    navigate("/dashboard/admin");
   };
 
   return (
