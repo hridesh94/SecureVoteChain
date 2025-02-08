@@ -55,9 +55,11 @@ const VoterDashboard = () => {
 
     if (blockchain.isVotingComplete()) {
       toast({
-        title: "Voting Ended",
-        description: "The voting period has ended.",
+        title: "⚠️ Voting Period Ended",
+        description: "The election voting period has ended. No more votes can be accepted at this time.",
         variant: "destructive",
+        duration: 7000, // Show for 7 seconds
+        className: "bg-red-100 border-2 border-red-500 text-red-900 font-medium",
       });
       return;
     }
