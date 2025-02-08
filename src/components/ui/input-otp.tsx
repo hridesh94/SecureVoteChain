@@ -71,7 +71,7 @@ const InputOTPSlot = React.forwardRef<
           slot?.char ? "text-black" : "text-gray-400"
         )}
       >
-        {slot?.char || "0"}
+        {slot?.char || <span className="opacity-40">0</span>}
       </div>
       <input
         type="text"
