@@ -1,11 +1,14 @@
+
 import React, { useState } from "react";
 import { LockKeyhole, Users, Shield, ChevronRight, Check, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
-  const [hoveredRole, setHoveredRole] = useState(null);
+  const [hoveredRole, setHoveredRole] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const handleRoleSelect = (role) => {
-    console.log(`Navigating to /auth/${role}`);
+  const handleRoleSelect = (role: string) => {
+    navigate(`/auth/${role}`);
   };
 
   const features = [
