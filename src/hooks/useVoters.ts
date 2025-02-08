@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Voter } from "@/types/voter";
@@ -7,7 +8,7 @@ import {
   filterVoters,
   exportVotersToCSV 
 } from "@/utils/voterUtils";
-import { VotingBlockchain } from "@/utils/votingBlockchain";
+import { VotingBlockchain } from "@/utils/blockchain";
 
 export const useVoters = (showVotes = false) => {
   const [searchTerm, setSearchTerm] = useState("");
