@@ -37,13 +37,23 @@ interface InputOTPSlotProps extends React.ComponentPropsWithoutRef<"div"> {
   disabled?: boolean;
 }
 
+// Extend the OTPInputContext type to include handlePaste
+interface ExtendedOTPContext {
+  slots: Array<{
+    char: string | undefined;
+    hasFakeCaret: boolean;
+    isActive: boolean;
+  }>;
+  handlePaste?: (pastedText: string) => void;
+}
+
 const InputOTPSlot = React.forwardRef<
   React.ElementRef<"div">,
   InputOTPSlotProps
 >(({ index, className, disabled, ...props }, ref) => {
-  const inputOTPContext = React.useContext(OTPInputContext)
-  const slots = inputOTPContext?.slots || []
-  const slot = slots[index]
+  const inputOTPContext = React.useContext(OTPInputContext) as ExtendedOTPContext;
+  const slots = inputOTPContext?.slots || [];
+  const slot = slots[index];
 
   return (
     <div
