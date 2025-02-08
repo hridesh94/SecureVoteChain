@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, User, FileText, HelpCircle } from "lucide-react";
+import { ArrowLeft, User, FileText, HelpCircle, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -24,13 +23,13 @@ const initialVoteState: VoteState = {
   federal: null,
 };
 
-// Test voter IDs for demonstration
-const TEST_VOTERS = [
-  { id: "V001", name: "Aarav Sharma" },
-  { id: "V002", name: "Priya Adhikari" },
-  { id: "V003", name: "Rajesh Poudel" },
-  { id: "V004", name: "Sita Karki" },
-  { id: "V005", name: "Bishnu Thapa" }
+// Test voter IDs for demo purposes
+const testVoterIds = [
+  "V1234567890",
+  "V9876543210",
+  "V5555555555",
+  "V1111111111",
+  "V9999999999"
 ];
 
 const VoterDashboard = () => {
@@ -40,10 +39,8 @@ const VoterDashboard = () => {
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [currentLevel, setCurrentLevel] = useState<VoteLevel>("local");
   const [showInstructions, setShowInstructions] = useState(true);
-  const [currentVoterIndex, setCurrentVoterIndex] = useState(0);
+  const [voterId, setVoterId] = useState<string>(testVoterIds[0]);
   const { toast } = useToast();
-
-  const currentVoter = TEST_VOTERS[currentVoterIndex];
 
   const handlePollingStationSelect = (stationId: string) => {
     setSelectedPollingStation(stationId);
@@ -73,11 +70,13 @@ const VoterDashboard = () => {
     }
 
     try {
+      blockchain.setDemoReset(false); // Reset the demo flag before voting
+      
       // Use Promise.all to handle multiple blockchain transactions
       await Promise.all(
         Object.entries(votes).map(([level, candidateId]) => {
           if (candidateId) {
-            return blockchain.addBlock(candidateId, currentVoter.id);
+            return blockchain.addBlock(candidateId, voterId);
           }
         })
       );
@@ -85,21 +84,20 @@ const VoterDashboard = () => {
       setHasVoted(true);
       toast({
         title: "Vote Confirmation",
-        description: `Your votes have been securely recorded for all levels. धन्यवाद! (Thank you!) - ${currentVoter.name}`,
+        description: "Your votes have been securely recorded for all levels. धन्यवाद! (Thank you!)",
       });
       
       console.log("Votes recorded:", {
         votes,
-        voter: currentVoter,
         pollingStation: selectedPollingStation,
         chain: blockchain.getChain()
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Voting error:", error);
-      if (error.message === "Voter has already cast their vote") {
+      if (blockchain.hasVoted(voterId)) {
         toast({
           title: "Already Voted",
-          description: `${currentVoter.name} has already cast their vote. Please use different voter credentials.`,
+          description: "This voter has already cast their vote. Please reset the demo or use a different voter ID to vote again.",
           variant: "destructive",
         });
       } else {
@@ -123,6 +121,7 @@ const VoterDashboard = () => {
       description: `Candidate selected for ${currentLevel} level. You can now proceed to the next level.`,
     });
 
+    // Use a lookup table for level transitions
     const nextLevel: Record<VoteLevel, VoteLevel | null> = {
       local: "provincial",
       provincial: "federal",
@@ -135,17 +134,19 @@ const VoterDashboard = () => {
     }
   };
 
-  const handleSwitchVoter = () => {
-    const nextIndex = (currentVoterIndex + 1) % TEST_VOTERS.length;
-    setCurrentVoterIndex(nextIndex);
+  const handleResetDemo = () => {
+    blockchain.resetVotingState();
     setHasVoted(false);
     setVotes(initialVoteState);
     setSelectedPollingStation(null);
     setCurrentLevel("local");
-    
+    // Get a random test voter ID for the next demo
+    const randomIndex = Math.floor(Math.random() * testVoterIds.length);
+    const newVoterId = testVoterIds[randomIndex];
+    setVoterId(newVoterId);
     toast({
-      title: "Voter Changed",
-      description: `Switched to: ${TEST_VOTERS[nextIndex].name} (ID: ${TEST_VOTERS[nextIndex].id})`,
+      title: "Demo Reset",
+      description: `Voting state has been reset for demo purposes. New Voter ID: ${newVoterId}`,
       className: "bg-white border-2 border-blue-500 text-blue-900 font-medium shadow-xl",
     });
   };
@@ -166,10 +167,11 @@ const VoterDashboard = () => {
       <div className="relative">
         <VoteSuccess />
         <Button
-          onClick={handleSwitchVoter}
+          onClick={handleResetDemo}
           className="absolute top-4 right-4 flex items-center gap-2 bg-blue-500 hover:bg-blue-600"
         >
-          Switch Test Voter
+          <RefreshCw className="w-4 h-4" />
+          Reset Demo
         </Button>
       </div>
     );
@@ -187,15 +189,14 @@ const VoterDashboard = () => {
             Back to Home
           </Link>
           <div className="flex items-center gap-4">
-            <p className="text-sm font-medium text-gray-600">
-              Current Voter: {currentVoter.name} (ID: {currentVoter.id})
-            </p>
+            <p className="text-sm font-medium text-gray-600">Current Voter ID: {voterId}</p>
             <Button
-              onClick={handleSwitchVoter}
+              onClick={handleResetDemo}
               variant="outline"
               className="flex items-center gap-2"
             >
-              Switch Test Voter
+              <RefreshCw className="w-4 h-4" />
+              Reset Demo
             </Button>
           </div>
         </div>
