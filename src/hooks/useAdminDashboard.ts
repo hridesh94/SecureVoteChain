@@ -13,38 +13,54 @@ export const useAdminDashboard = () => {
     totalVoters: 1500,
     votesCast: 0,
     votingProgress: 0,
-    remainingVoters: 1500, // Added this field
+    remainingVoters: 1500,
     activeVoters: 42,
     averageVoteTime: "2.5 min",
     invalidAttempts: 23,
     blockedVoters: 5,
+    lastVoteTimestamp: null as number | null,
+    hourlyVoteRate: 0,
   });
   const { toast } = useToast();
 
   useEffect(() => {
-    const chain = blockchain.getChain();
-    const votesCast = chain.length - 1;
-    const votingProgress = (votesCast / stats.totalVoters) * 100;
-    const remainingVoters = stats.totalVoters - votesCast;
+    const updateStats = () => {
+      const chain = blockchain.getChain();
+      const votesCast = chain.length - 1; // Exclude genesis block
+      const votingProgress = (votesCast / stats.totalVoters) * 100;
+      const remainingVoters = stats.totalVoters - votesCast;
 
-    setStats(prev => ({
-      ...prev,
-      votesCast,
-      remainingVoters,
-      votingProgress,
-    }));
+      // Calculate hourly vote rate
+      const recentVotes = chain
+        .filter(block => block.vote.voterId !== "genesis")
+        .filter(block => {
+          const oneHourAgo = Date.now() - 3600000;
+          return block.timestamp > oneHourAgo;
+        });
+      
+      const hourlyVoteRate = recentVotes.length;
+      const lastVoteTimestamp = chain.length > 1 ? chain[chain.length - 1].timestamp : null;
 
-    if (!isVotingActive) {
-      const results = blockchain.getVotingResults();
-      setVotingResults(results);
-    }
+      setStats(prev => ({
+        ...prev,
+        votesCast,
+        remainingVoters,
+        votingProgress,
+        hourlyVoteRate,
+        lastVoteTimestamp,
+      }));
 
-    const interval = setInterval(() => {
-      handleRefreshData();
-    }, 30000);
+      if (!isVotingActive) {
+        const results = blockchain.getVotingResults();
+        setVotingResults(results);
+      }
+    };
+
+    updateStats();
+    const interval = setInterval(updateStats, 30000); // Update every 30 seconds
 
     return () => clearInterval(interval);
-  }, [isVotingActive]);
+  }, [isVotingActive, stats.totalVoters]);
 
   const handleVotingToggle = () => {
     const newVotingState = !isVotingActive;
