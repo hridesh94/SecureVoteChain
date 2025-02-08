@@ -37,7 +37,6 @@ interface InputOTPSlotProps extends React.ComponentPropsWithoutRef<"div"> {
   disabled?: boolean;
 }
 
-// Extend the OTPInputContext type to include handlePaste
 interface ExtendedOTPContext {
   slots: Array<{
     char: string | undefined;
@@ -65,39 +64,70 @@ const InputOTPSlot = React.forwardRef<
       )}
       {...props}
     >
+      {/* Display entered digit or placeholder */}
       <div 
         className={cn(
-          "absolute inset-0 w-full h-full flex items-center justify-center text-2xl font-semibold",
-          slot?.char ? "text-black" : "text-gray-400"
+          "absolute inset-0 w-full h-full flex items-center justify-center text-2xl font-semibold pointer-events-none",
+          slot?.char ? "text-primary" : "text-muted-foreground/40"
         )}
       >
-        {slot?.char || <span className="opacity-40">0</span>}
+        {slot?.char || "0"}
       </div>
+
+      {/* Actual input field */}
       <input
         type="text"
         inputMode="numeric"
         pattern="\d*"
         maxLength={1}
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        className="absolute inset-0 w-full h-full text-center text-2xl font-semibold opacity-0 focus:opacity-100 focus:outline-none cursor-pointer"
         autoComplete="one-time-code"
         disabled={disabled}
+        onFocus={(e) => e.target.select()}
+        onChange={(e) => {
+          const value = e.target.value;
+          if (/^\d*$/.test(value)) {
+            const form = e.target.form;
+            const inputs = Array.from(form?.elements || []).filter(
+              (el): el is HTMLInputElement => el instanceof HTMLInputElement
+            );
+            const currentIndex = inputs.indexOf(e.target);
+            
+            if (value && currentIndex < inputs.length - 1) {
+              inputs[currentIndex + 1].focus();
+            }
+          }
+        }}
         onKeyDown={(e) => {
-          if (!/[\d\s]/.test(e.key) && !["Backspace", "Delete", "Tab"].includes(e.key)) {
-            e.preventDefault()
+          if (!/[\d\s]/.test(e.key) && !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+            e.preventDefault();
+          }
+
+          if (e.key === "Backspace" && !e.currentTarget.value) {
+            const form = e.currentTarget.form;
+            const inputs = Array.from(form?.elements || []).filter(
+              (el): el is HTMLInputElement => el instanceof HTMLInputElement
+            );
+            const currentIndex = inputs.indexOf(e.currentTarget);
+            
+            if (currentIndex > 0) {
+              inputs[currentIndex - 1].focus();
+              inputs[currentIndex - 1].select();
+            }
           }
         }}
         onPaste={(e) => {
-          e.preventDefault()
-          const pastedData = e.clipboardData.getData("text/plain")
-          const numericData = pastedData.replace(/\D/g, "")
+          e.preventDefault();
+          const pastedData = e.clipboardData.getData("text/plain");
+          const numericData = pastedData.replace(/\D/g, "");
           if (inputOTPContext?.handlePaste && numericData) {
-            inputOTPContext.handlePaste(numericData)
+            inputOTPContext.handlePaste(numericData);
           }
         }}
       />
       {slot?.hasFakeCaret && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-4 w-px animate-caret-blink bg-black duration-1000" />
+          <div className="h-4 w-px animate-caret-blink bg-primary duration-1000" />
         </div>
       )}
     </div>
