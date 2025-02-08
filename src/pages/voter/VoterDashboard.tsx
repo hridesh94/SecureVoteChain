@@ -68,9 +68,10 @@ const VoterDashboard = () => {
       // Check if voter has already voted
       if (blockchain.hasVoted(voterId)) {
         toast({
-          title: "Vote Already Cast",
-          description: "You have already participated in this election.",
+          title: "Double Voting Detected",
+          description: "You have already cast your vote in this election. Each voter is allowed only one vote.",
           variant: "destructive",
+          duration: 5000, // Show for 5 seconds
         });
         return;
       }
@@ -97,6 +98,7 @@ const VoterDashboard = () => {
         title: "Error",
         description: error instanceof Error ? error.message : "There was an error recording your votes. Please try again.",
         variant: "destructive",
+        duration: 5000,
       });
       console.error("Voting error:", error);
     }
