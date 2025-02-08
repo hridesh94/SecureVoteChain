@@ -142,9 +142,9 @@ const VoterAuth = () => {
                     onChange={setOtp}
                     maxLength={6}
                     render={({ slots }) => (
-                      <InputOTPGroup className="gap-2">
+                      <InputOTPGroup>
                         {slots.map((slot, index) => (
-                          <InputOTPSlot key={index} {...slot} index={index} />
+                          <InputOTPSlot key={index} {...slot} />
                         ))}
                       </InputOTPGroup>
                     )}

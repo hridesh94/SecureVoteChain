@@ -2,38 +2,47 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-interface InputOTPProps extends React.ComponentPropsWithoutRef<"div"> {
+interface InputOTPProps {
   value: string;
   maxLength?: number;
   onChange?: (value: string) => void;
+  className?: string;
+  slots?: React.ReactNode[];
+  render?: (props: { slots: InputOTPSlotProps[] }) => React.ReactNode;
 }
 
-interface InputOTPSlotProps extends React.ComponentPropsWithoutRef<"input"> {
+interface InputOTPSlotProps {
   index: number;
   value: string;
   onChange?: (value: string) => void;
+  className?: string;
 }
 
 const InputOTP = React.forwardRef<HTMLDivElement, InputOTPProps>(
-  ({ className, value = "", maxLength = 6, onChange, ...props }, ref) => {
+  ({ className, value = "", maxLength = 6, onChange, render, ...props }, ref) => {
     const handleChange = (value: string) => {
       if (onChange) {
         onChange(value);
       }
     };
 
+    const slots = Array.from({ length: maxLength }).map((_, i) => ({
+      index: i,
+      value: value[i] || "",
+      onChange: (newValue: string) => {
+        const nextValue = value.substring(0, i) + newValue + value.substring(i + 1);
+        handleChange(nextValue);
+      },
+    }));
+
+    if (render) {
+      return render({ slots });
+    }
+
     return (
       <div className={cn("flex gap-2", className)} ref={ref} {...props}>
-        {Array.from({ length: maxLength }).map((_, i) => (
-          <InputOTPSlot
-            key={i}
-            index={i}
-            value={value[i] || ""}
-            onChange={(newValue) => {
-              const nextValue = value.substring(0, i) + newValue + value.substring(i + 1);
-              handleChange(nextValue);
-            }}
-          />
+        {slots.map((slot, i) => (
+          <InputOTPSlot key={i} {...slot} />
         ))}
       </div>
     );
@@ -43,7 +52,7 @@ InputOTP.displayName = "InputOTP";
 
 const InputOTPGroup = React.forwardRef<
   HTMLDivElement,
-  React.ComponentPropsWithoutRef<"div">
+  React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
   return (
     <div
