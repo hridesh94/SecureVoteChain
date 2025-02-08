@@ -83,7 +83,7 @@ const AdminDashboard = () => {
                 <BarChart className="w-5 h-5 text-primary mr-2" />
                 <h3 className="font-semibold">Votes Cast</h3>
               </div>
-              <p className="text-3xl font-semibold">{mockStats.votesCart}</p>
+              <p className="text-3xl font-semibold">{mockStats.votesCast}</p>
             </motion.div>
 
             <motion.div
@@ -119,3 +119,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
