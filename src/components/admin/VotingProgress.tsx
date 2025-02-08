@@ -1,4 +1,6 @@
 
+import { Progress } from "@/components/ui/progress";
+
 interface VotingProgressProps {
   votingProgress: number;
   remainingVoters: number;
@@ -6,17 +8,21 @@ interface VotingProgressProps {
 
 const VotingProgress = ({ votingProgress, remainingVoters }: VotingProgressProps) => {
   return (
-    <div className="p-6 rounded-lg border border-white/20">
-      <h3 className="font-semibold mb-4">Voting Progress</h3>
-      <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-        <div
-          className="bg-primary h-2.5 rounded-full transition-all duration-500"
-          style={{ width: `${votingProgress}%` }}
-        ></div>
-      </div>
-      <div className="flex justify-between text-sm text-primary/70">
-        <p>{votingProgress.toFixed(1)}% of total votes cast</p>
-        <p>{remainingVoters} votes remaining</p>
+    <div className="p-6 rounded-lg border border-white/20 backdrop-blur-sm">
+      <h3 className="font-semibold mb-4 text-lg flex items-center">
+        Voting Progress
+      </h3>
+      <Progress 
+        value={votingProgress} 
+        className="h-3 mb-4"
+      />
+      <div className="flex justify-between items-center text-sm">
+        <p className="text-primary/70">
+          <span className="font-semibold text-primary">{votingProgress.toFixed(1)}%</span> of total votes cast
+        </p>
+        <p className="text-primary/70">
+          <span className="font-semibold text-primary">{remainingVoters}</span> votes remaining
+        </p>
       </div>
     </div>
   );
