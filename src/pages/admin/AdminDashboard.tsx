@@ -19,6 +19,7 @@ import { VotingBlockchain } from "@/utils/blockchain";
 import StatCard from "@/components/admin/StatCard";
 import VotingChart from "@/components/admin/VotingChart";
 import SecurityOverview from "@/components/admin/SecurityOverview";
+import VoterList from "@/components/admin/VoterList";
 
 const blockchain = new VotingBlockchain();
 
@@ -232,6 +233,11 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <VotingChart data={votingData} />
               <SecurityOverview stats={stats} />
+            </div>
+
+            <div className="p-6 rounded-lg border border-white/20">
+              <h3 className="font-semibold mb-4">Voter Management</h3>
+              <VoterList />
             </div>
           </div>
         </motion.div>
