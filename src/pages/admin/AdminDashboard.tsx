@@ -1,29 +1,19 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { 
-  ArrowLeft, 
-  BarChart, 
-  Lock, 
-  Users, 
-  UserCheck,
-  Clock,
-  RefreshCw,
-  Download,
-  Ban,
-  Eye,
-  EyeOff
-} from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { VotingBlockchain } from "@/utils/blockchain";
 import StatCard from "@/components/admin/StatCard";
 import VotingChart from "@/components/admin/VotingChart";
 import SecurityOverview from "@/components/admin/SecurityOverview";
 import VoterList from "@/components/admin/VoterList";
+import AdminHeader from "@/components/admin/AdminHeader";
+import AdminActions from "@/components/admin/AdminActions";
+import VotingProgress from "@/components/admin/VotingProgress";
+import VotingResults from "@/components/admin/VotingResults";
+import { Users, BarChart, UserCheck, Clock } from "lucide-react";
 
-const blockchain = new VotingBlockchain();
+const blockchain = VotingBlockchain.getInstance();
 
 const votingData = [
   { time: "9 AM", votes: 150, active: 25 },
@@ -156,29 +146,9 @@ const AdminDashboard = () => {
     });
   };
 
-  const votingStatus = isVotingActive ? (
-    <div className="flex items-center text-green-500">
-      <div className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse" />
-      Active
-    </div>
-  ) : (
-    <div className="flex items-center text-red-500">
-      <div className="w-2 h-2 rounded-full bg-red-500 mr-2" />
-      Ended
-    </div>
-  );
-
   return (
     <div className="min-h-screen w-full bg-secondary p-4">
       <div className="max-w-6xl mx-auto">
-        <Link
-          to="/"
-          className="inline-flex items-center text-primary hover:text-primary/80 mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Home
-        </Link>
-
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -186,66 +156,16 @@ const AdminDashboard = () => {
           className="bg-card backdrop-blur-md rounded-lg p-8 border border-white/20"
         >
           <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-primary/5">
-                <Lock className="w-6 h-6 text-primary" />
-              </div>
-              <div className="ml-4">
-                <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
-                {votingStatus}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefreshData}
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportData}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleBlockVoter}
-              >
-                <Ban className="w-4 h-4 mr-2" />
-                Block Voter
-              </Button>
-              {!isVotingActive && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleToggleResults}
-                >
-                  {showResults ? (
-                    <>
-                      <EyeOff className="w-4 h-4 mr-2" />
-                      Hide Results
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="w-4 h-4 mr-2" />
-                      Show Results
-                    </>
-                  )}
-                </Button>
-              )}
-              <Button
-                onClick={handleVotingToggle}
-                variant={isVotingActive ? "destructive" : "default"}
-              >
-                {isVotingActive ? "End Voting" : "Start Voting"}
-              </Button>
-            </div>
+            <AdminHeader isVotingActive={isVotingActive} />
+            <AdminActions
+              isVotingActive={isVotingActive}
+              showResults={showResults}
+              onRefresh={handleRefreshData}
+              onExport={handleExportData}
+              onBlock={handleBlockVoter}
+              onToggleResults={handleToggleResults}
+              onVotingToggle={handleVotingToggle}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -276,32 +196,13 @@ const AdminDashboard = () => {
           </div>
 
           <div className="grid gap-6 mb-8">
-            <div className="p-6 rounded-lg border border-white/20">
-              <h3 className="font-semibold mb-4">Voting Progress</h3>
-              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                <div
-                  className="bg-primary h-2.5 rounded-full transition-all duration-500"
-                  style={{ width: `${stats.votingProgress}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-between text-sm text-primary/70">
-                <p>{stats.votingProgress.toFixed(1)}% of total votes cast</p>
-                <p>{stats.remainingVoters} votes remaining</p>
-              </div>
-            </div>
+            <VotingProgress
+              votingProgress={stats.votingProgress}
+              remainingVoters={stats.remainingVoters}
+            />
 
             {!isVotingActive && showResults && (
-              <div className="p-6 rounded-lg border border-white/20">
-                <h3 className="font-semibold mb-4">Voting Results</h3>
-                <div className="space-y-4">
-                  {Object.entries(votingResults).map(([candidateId, votes]) => (
-                    <div key={candidateId} className="flex justify-between items-center">
-                      <span>Candidate {candidateId}</span>
-                      <span className="font-semibold">{votes} votes</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <VotingResults results={votingResults} />
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
