@@ -4,9 +4,11 @@ import { VerifiedVote, VoteVerifier } from '../voteVerification';
 export class VoteManager {
   private votedVoters: Set<string> = new Set();
   private _voteVerifier: VoteVerifier;
+  private votingSessionId: string = '';
 
   constructor() {
     this._voteVerifier = VoteVerifier.getInstance();
+    this.resetVotingSession();
   }
 
   get voteVerifier(): VoteVerifier {
@@ -14,15 +16,17 @@ export class VoteManager {
   }
 
   public hasVoted(voterId: string): boolean {
-    return this.votedVoters.has(voterId);
+    return this.votedVoters.has(`${this.votingSessionId}-${voterId}`);
   }
 
   public addVoter(voterId: string): void {
-    this.votedVoters.add(voterId);
+    this.votedVoters.add(`${this.votingSessionId}-${voterId}`);
   }
 
-  public clearVotedVoters(): void {
+  public resetVotingSession(): void {
     this.votedVoters.clear();
+    this.votingSessionId = Date.now().toString();
+    console.log("VoteManager: New voting session started with ID:", this.votingSessionId);
   }
 
   public verifyVoteSignature(verifiedVote: VerifiedVote): boolean {
@@ -37,4 +41,3 @@ export class VoteManager {
     return this.voteVerifier.signVote(candidateId, voterId);
   }
 }
-

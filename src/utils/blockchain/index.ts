@@ -27,20 +27,7 @@ export class VotingBlockchain {
     if (this.blockchainState.getChain().length === 0) {
       this.createGenesisBlock();
     }
-    this.initializeVotedVoters();
     VotingBlockchain.instance = this;
-  }
-
-  private initializeVotedVoters(): void {
-    this.blockchainState.getChain().forEach(block => {
-      if (block.vote.voterId !== "genesis") {
-        this.voteManager.addVoter(block.vote.voterId);
-      }
-    });
-  }
-
-  get voteVerifier(): VoteVerifier {
-    return this.voteManager.voteVerifier;
   }
 
   private createGenesisBlock(): void {
@@ -161,9 +148,8 @@ export class VotingBlockchain {
   }
 
   public resetVotingState(): void {
-    this.blockchainState.resetChain();
-    this.voteManager.clearVotedVoters();
-    this.blockchainState.setVotingEnded(false);
+    this.blockchainState.resetVotingSession();
+    this.voteManager.resetVotingSession();
     console.log("Voting state reset: Chain and voted voters cleared");
   }
 
