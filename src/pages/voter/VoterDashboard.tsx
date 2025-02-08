@@ -85,7 +85,7 @@ const VoterDashboard = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "There was an error recording your votes. Please try again.",
+        description: "You have already voted. धन्यवाद! (Thank you!) ",
         variant: "destructive",
       });
       console.error("Voting error:", error);
