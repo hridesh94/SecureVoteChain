@@ -1,18 +1,12 @@
-# Welcome to your Lovable project
-
+# Welcome to Secure Vote Chain
+Experience the future of voting with our blockchain-powered platform. Secure, transparent, and accessible voting for everyone.
 ## Project info
 
-**URL**: https://lovable.dev/projects/7dda7696-ebbb-493f-9da5-492bc9542dac
+**URL**: [https://evotingchain.netlify.app/]
 
 ## How can I edit this code?
 
 There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/7dda7696-ebbb-493f-9da5-492bc9542dac) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
@@ -60,9 +54,7 @@ This project is built with .
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/7dda7696-ebbb-493f-9da5-492bc9542dac) and click on Share -> Publish.
 
 ## I want to use a custom domain - is that possible?
 
