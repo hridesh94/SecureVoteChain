@@ -35,17 +35,26 @@ const VotingResults = ({ results }: VotingResultsProps) => {
   };
 
   const renderPollingStationSelector = () => (
-    <div className="relative z-50">
+    <div className="mb-6">
       <Select
         value={selectedPollingStation}
         onValueChange={setSelectedPollingStation}
       >
-        <SelectTrigger className="w-full mb-4">
+        <SelectTrigger className="w-full relative bg-background">
           <SelectValue placeholder="Select polling station" />
         </SelectTrigger>
-        <SelectContent position="popper" sideOffset={4} className="w-full">
+        <SelectContent
+          position="popper"
+          className="w-[var(--radix-select-trigger-width)] bg-background shadow-lg"
+          align="start"
+          sideOffset={4}
+        >
           {mockPollingStations.map((station) => (
-            <SelectItem key={station.id} value={station.id}>
+            <SelectItem 
+              key={station.id} 
+              value={station.id}
+              className="cursor-pointer hover:bg-primary/5"
+            >
               {station.name}
             </SelectItem>
           ))}
@@ -57,7 +66,7 @@ const VotingResults = ({ results }: VotingResultsProps) => {
   const renderLevelResults = (level: "local" | "provincial" | "federal", title: string) => {
     const pollingStation = mockPollingStations.find(ps => ps.id === selectedPollingStation);
     return (
-      <div className="space-y-3 relative z-0">
+      <div className="space-y-3">
         <h4 className="font-semibold text-lg">{title}</h4>
         <div className="text-sm text-primary/70 mb-4">
           Constituency: {pollingStation?.constituencies[level].name}
