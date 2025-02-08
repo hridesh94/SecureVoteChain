@@ -2,13 +2,13 @@
 import { VerifiedVote, VoteVerifier } from '../voteVerification';
 
 export class VoteManager {
-  private votedVoters: Set<string> = new Set();
+  private votedVoters: Map<string, number> = new Map();
   private _voteVerifier: VoteVerifier;
-  private votingSessionId: string = '';
+  private lastResetTimestamp: number;
 
   constructor() {
     this._voteVerifier = VoteVerifier.getInstance();
-    this.resetVotingSession(Date.now().toString());
+    this.lastResetTimestamp = Date.now();
   }
 
   get voteVerifier(): VoteVerifier {
@@ -16,17 +16,17 @@ export class VoteManager {
   }
 
   public hasVoted(voterId: string): boolean {
-    return this.votedVoters.has(`${this.votingSessionId}-${voterId}`);
+    const voterTimestamp = this.votedVoters.get(voterId);
+    return voterTimestamp !== undefined && voterTimestamp >= this.lastResetTimestamp;
   }
 
   public addVoter(voterId: string): void {
-    this.votedVoters.add(`${this.votingSessionId}-${voterId}`);
+    this.votedVoters.set(voterId, Date.now());
   }
 
-  public resetVotingSession(sessionId: string): void {
-    this.votedVoters.clear();
-    this.votingSessionId = sessionId;
-    console.log("VoteManager: New voting session started with ID:", this.votingSessionId);
+  public resetVotingSession(): void {
+    this.lastResetTimestamp = Date.now();
+    console.log("VoteManager: New voting session started at:", this.lastResetTimestamp);
   }
 
   public verifyVoteSignature(verifiedVote: VerifiedVote): boolean {
