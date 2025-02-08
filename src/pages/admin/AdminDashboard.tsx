@@ -36,7 +36,6 @@ const AdminDashboard = () => {
         showResults={showResults}
         onRefresh={handleRefreshData}
         onExport={handleExportData}
-        onBlock={handleBlockVoter}
         onToggleResults={handleToggleResults}
         onVotingToggle={handleVotingToggle}
       />
