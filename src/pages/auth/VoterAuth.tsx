@@ -1,12 +1,26 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+const testVoterCredentials = [
+  { nationalId: "1234567890", voterId: "V1234567890" },
+  { nationalId: "9876543210", voterId: "V9876543210" },
+  { nationalId: "5555555555", voterId: "V5555555555" },
+  { nationalId: "1111111111", voterId: "V1111111111" },
+  { nationalId: "9999999999", voterId: "V9999999999" },
+];
 
 const VoterAuth = () => {
   const [nationalId, setNationalId] = useState("");
@@ -30,11 +44,24 @@ const VoterAuth = () => {
       });
       return;
     }
+
+    const isValidCredentials = testVoterCredentials.some(
+      (cred) => cred.nationalId === nationalId && cred.voterId === voterId
+    );
+
+    if (!isValidCredentials) {
+      toast({
+        title: "Invalid Credentials",
+        description: "Please use valid test credentials to proceed.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    // In a real application, this would verify credentials against a backend
     const generatedOTP = generateOTP();
-    console.log("Generated OTP:", generatedOTP); // For demo purposes
+    console.log("Generated OTP:", generatedOTP);
     localStorage.setItem("currentOTP", generatedOTP);
+    localStorage.setItem("currentVoterId", voterId);
     
     toast({
       title: "OTP Generated",
@@ -81,9 +108,26 @@ const VoterAuth = () => {
           transition={{ duration: 0.6 }}
           className="bg-card backdrop-blur-md rounded-lg p-8 border border-white/20"
         >
-          <h1 className="text-2xl font-semibold mb-6 text-center">
-            Voter Authentication
-          </h1>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-semibold">Voter Authentication</h1>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Info className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Test Credentials Available:</p>
+                  {testVoterCredentials.map((cred, index) => (
+                    <p key={index} className="text-xs">
+                      NID: {cred.nationalId} | VID: {cred.voterId}
+                    </p>
+                  ))}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
 
           {!showOTP ? (
             <form onSubmit={handleInitialSubmit} className="space-y-6">
@@ -173,3 +217,4 @@ const VoterAuth = () => {
 };
 
 export default VoterAuth;
+
