@@ -92,12 +92,19 @@ const VoterDashboard = () => {
       });
     } catch (error) {
       console.error("Voting error:", error);
-      toast({
-        title: "Already Voted",
-        description: "This voter ID has already cast their vote. Please reset the demo to vote again.",
-        variant: "destructive",
-        className: "bg-white border-2 border-blue-500 text-blue-900 font-medium shadow-xl",
-      });
+      if (blockchain.hasVoted(voterId)) {
+        toast({
+          title: "Already Voted",
+          description: "You have already cast your vote. Please reset the demo to vote again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "An error occurred while recording your vote. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -133,10 +140,11 @@ const VoterDashboard = () => {
     setCurrentLevel("local");
     // Get a random test voter ID for the next demo
     const randomIndex = Math.floor(Math.random() * testVoterIds.length);
-    setVoterId(testVoterIds[randomIndex]);
+    const newVoterId = testVoterIds[randomIndex];
+    setVoterId(newVoterId);
     toast({
       title: "Demo Reset",
-      description: `Voting state has been reset for demo purposes. New Voter ID: ${testVoterIds[randomIndex]}`,
+      description: `Voting state has been reset for demo purposes. New Voter ID: ${newVoterId}`,
       className: "bg-white border-2 border-blue-500 text-blue-900 font-medium shadow-xl",
     });
   };
