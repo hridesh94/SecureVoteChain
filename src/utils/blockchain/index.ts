@@ -1,14 +1,8 @@
-import CryptoJS from 'crypto-js';
-import { VoteVerifier, VerifiedVote, VoteSignature } from './voteVerification';
 
-export interface Block {
-  index: number;
-  timestamp: number;
-  vote: VerifiedVote;
-  previousHash: string;
-  hash: string;
-  nonce: number;
-}
+import { VoteVerifier, VerifiedVote } from '../voteVerification';
+import { Block } from './types';
+import { calculateHash, mineBlock } from './blockUtils';
+import { loadChainFromStorage, saveChainToStorage } from './storage';
 
 export class VotingBlockchain {
   private chain: Block[] = [];
@@ -44,26 +38,13 @@ export class VotingBlockchain {
   }
 
   private loadChain(): void {
-    try {
-      const savedChain = localStorage.getItem('blockchain');
-      if (savedChain) {
-        this.chain = JSON.parse(savedChain);
-        if (!this.isChainValid()) {
-          console.error('Loaded chain is invalid');
-          this.chain = [];
-        }
+    const loadedChain = loadChainFromStorage();
+    if (loadedChain) {
+      this.chain = loadedChain;
+      if (!this.isChainValid()) {
+        console.error('Loaded chain is invalid');
+        this.chain = [];
       }
-    } catch (error) {
-      console.error('Error loading blockchain:', error);
-      this.chain = [];
-    }
-  }
-
-  private saveChain(): void {
-    try {
-      localStorage.setItem('blockchain', JSON.stringify(this.chain));
-    } catch (error) {
-      console.error('Error saving blockchain:', error);
     }
   }
 
@@ -87,19 +68,9 @@ export class VotingBlockchain {
       nonce: 0
     };
     
-    genesisBlock.hash = this.calculateHash(genesisBlock);
+    genesisBlock.hash = calculateHash(genesisBlock);
     this.chain.push(genesisBlock);
-    this.saveChain();
-  }
-
-  private calculateHash(block: Omit<Block, 'hash'>): string {
-    return CryptoJS.SHA256(
-      block.index +
-      block.previousHash +
-      block.timestamp +
-      JSON.stringify(block.vote) +
-      block.nonce
-    ).toString();
+    saveChainToStorage(this.chain);
   }
 
   public getLatestBlock(): Block {
@@ -119,7 +90,6 @@ export class VotingBlockchain {
       throw new Error("Voter has already cast their vote");
     }
 
-    // Create and verify vote signature
     const signature = this.voteVerifier.signVote(candidateId, voterId);
     if (!this.voteVerifier.verifyVoteTimestamp(signature.timestamp)) {
       throw new Error("Vote timestamp verification failed");
@@ -131,7 +101,6 @@ export class VotingBlockchain {
       signature
     };
 
-    // Verify the vote before adding to blockchain
     if (!this.voteVerifier.verifyVote(verifiedVote)) {
       throw new Error("Vote signature verification failed");
     }
@@ -146,22 +115,10 @@ export class VotingBlockchain {
       nonce: 0
     };
 
-    newBlock.hash = this.mineBlock(newBlock);
+    newBlock.hash = mineBlock(newBlock, this.difficulty);
     this.chain.push(newBlock);
     this.votedVoters.add(voterId);
-    this.saveChain();
-  }
-
-  private mineBlock(block: Block): string {
-    const target = Array(this.difficulty + 1).join("0");
-    
-    while (true) {
-      const hash = this.calculateHash(block);
-      if (hash.substring(0, this.difficulty) === target) {
-        return hash;
-      }
-      block.nonce++;
-    }
+    saveChainToStorage(this.chain);
   }
 
   public isChainValid(): boolean {
@@ -169,20 +126,16 @@ export class VotingBlockchain {
       const currentBlock = this.chain[i];
       const previousBlock = this.chain[i - 1];
 
-      // Verify block hash
-      if (currentBlock.hash !== this.calculateHash(currentBlock)) {
+      if (currentBlock.hash !== calculateHash(currentBlock)) {
         return false;
       }
 
-      // Verify chain continuity
       if (currentBlock.previousHash !== previousBlock.hash) {
         return false;
       }
 
-      // Skip genesis block vote verification
       if (i === 0) continue;
 
-      // Verify vote signature
       if (!this.voteVerifier.verifyVote(currentBlock.vote)) {
         return false;
       }
@@ -229,7 +182,6 @@ export class VotingBlockchain {
     return this.isVotingEnded;
   }
 
-  // Singleton instance getter
   public static getInstance(): VotingBlockchain {
     if (!VotingBlockchain.instance) {
       VotingBlockchain.instance = new VotingBlockchain();
@@ -237,3 +189,5 @@ export class VotingBlockchain {
     return VotingBlockchain.instance;
   }
 }
+
+export { Block } from './types';
