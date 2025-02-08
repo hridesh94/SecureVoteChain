@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, User, CheckCircle } from "lucide-react";
@@ -6,7 +5,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { VotingBlockchain } from "@/utils/blockchain";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockCandidates } from "./mockData";
 import CandidateCard from "./components/CandidateCard";
 import VoteSuccess from "./components/VoteSuccess";
@@ -128,80 +126,61 @@ const VoterDashboard = () => {
             <h1 className="text-2xl font-semibold ml-4">मतदान डास्बोर्ड (Voter Dashboard)</h1>
           </div>
 
-          {/* Simplified Progress Tracker */}
+          {/* Interactive Progress Tracker */}
           <div className="flex items-center justify-center mb-6 p-4 bg-primary/5 rounded-lg">
             <div className="flex items-center gap-6">
-              <div className="flex items-center">
-                <div className={`p-2 rounded-full ${votes.local ? 'bg-green-500' : 'bg-gray-300'}`}>
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-                <span className="ml-2">Local</span>
-              </div>
-              <span className="text-gray-400">→</span>
-              <div className="flex items-center">
-                <div className={`p-2 rounded-full ${votes.provincial ? 'bg-green-500' : 'bg-gray-300'}`}>
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-                <span className="ml-2">Provincial</span>
-              </div>
-              <span className="text-gray-400">→</span>
-              <div className="flex items-center">
-                <div className={`p-2 rounded-full ${votes.federal ? 'bg-green-500' : 'bg-gray-300'}`}>
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-                <span className="ml-2">Federal</span>
-              </div>
+              {[
+                { level: "local", label: "Local" },
+                { level: "provincial", label: "Provincial" },
+                { level: "federal", label: "Federal" }
+              ].map((item, index) => (
+                <>
+                  <div 
+                    key={item.level}
+                    className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => setCurrentLevel(item.level as "local" | "provincial" | "federal")}
+                  >
+                    <div 
+                      className={`p-2 rounded-full ${
+                        votes[item.level as keyof typeof votes] 
+                          ? 'bg-green-500' 
+                          : currentLevel === item.level 
+                            ? 'bg-primary'
+                            : 'bg-gray-300'
+                      }`}
+                    >
+                      <CheckCircle className="w-4 h-4 text-white" />
+                    </div>
+                    <span className={`ml-2 ${currentLevel === item.level ? 'font-semibold' : ''}`}>
+                      {item.label}
+                    </span>
+                  </div>
+                  {index < 2 && <span className="text-gray-400">→</span>}
+                </>
+              ))}
             </div>
           </div>
 
-          <Tabs value={currentLevel} className="mb-8">
-            <TabsList className="w-full justify-start mb-6">
-              <TabsTrigger 
-                value="local" 
-                onClick={() => setCurrentLevel("local")}
-                className="flex-1"
-              >
-                स्थानीय तह (Local Level)
-              </TabsTrigger>
-              <TabsTrigger 
-                value="provincial" 
-                onClick={() => setCurrentLevel("provincial")}
-                className="flex-1"
-              >
-                प्रदेश तह (Provincial Level)
-              </TabsTrigger>
-              <TabsTrigger 
-                value="federal" 
-                onClick={() => setCurrentLevel("federal")}
-                className="flex-1"
-              >
-                संघीय तह (Federal Level)
-              </TabsTrigger>
-            </TabsList>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {filteredCandidates.map((candidate) => (
+              <CandidateCard
+                key={candidate.id}
+                candidate={candidate}
+                isSelected={votes[currentLevel] === candidate.id}
+                showDetails={showDetails}
+                onSelect={handleSelectCandidate}
+                onToggleDetails={(id) => setShowDetails(showDetails === id ? null : id)}
+              />
+            ))}
+          </div>
 
-            <TabsContent value={currentLevel}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {filteredCandidates.map((candidate) => (
-                  <CandidateCard
-                    key={candidate.id}
-                    candidate={candidate}
-                    isSelected={votes[currentLevel] === candidate.id}
-                    showDetails={showDetails}
-                    onSelect={handleSelectCandidate}
-                    onToggleDetails={(id) => setShowDetails(showDetails === id ? null : id)}
-                  />
-                ))}
-              </div>
-
-              <Button
-                onClick={handleVote}
-                className="w-full bg-primary hover:bg-primary/90"
-                disabled={!votes.local || !votes.provincial || !votes.federal}
-              >
-                Submit All Votes (सबै मतहरू पेश गर्नुहोस्)
-              </Button>
-            </TabsContent>
-          </Tabs>
+          <Button
+            onClick={handleVote}
+            className="w-full bg-primary hover:bg-primary/90"
+            disabled={!votes.local || !votes.provincial || !votes.federal}
+          >
+            Submit All Votes (सबै मतहरू पेश गर्नुहोस्)
+          </Button>
         </motion.div>
       </div>
     </div>
