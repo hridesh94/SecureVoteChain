@@ -64,7 +64,9 @@ const InputOTPSlot = React.forwardRef<React.ElementRef<"div">, InputOTPSlotProps
         }
         // Update the value in the OTP context
         const newValue = slots.map((s, i) => (i === index ? value : s?.char || "")).join("")
-        inputOTPContext?.setValue?.(newValue)
+        if (inputOTPContext?.onChange) {
+          inputOTPContext.onChange(newValue)
+        }
       }
     }
 
@@ -73,8 +75,8 @@ const InputOTPSlot = React.forwardRef<React.ElementRef<"div">, InputOTPSlotProps
       const pastedText = e.clipboardData.getData('text/plain')
       const numericOnly = pastedText.replace(/\D/g, '')
       
-      if (numericOnly && inputOTPContext?.setValue) {
-        inputOTPContext.setValue(numericOnly)
+      if (numericOnly && inputOTPContext?.onChange) {
+        inputOTPContext.onChange(numericOnly)
       }
     }
 
@@ -116,7 +118,9 @@ const InputOTPSlot = React.forwardRef<React.ElementRef<"div">, InputOTPSlotProps
                 if (!e.currentTarget.value && currentIndex > 0) {
                   inputs[currentIndex - 1].focus()
                   const newValue = slots.map((s, i) => (i === currentIndex - 1 ? "" : s?.char || "")).join("")
-                  inputOTPContext?.setValue?.(newValue)
+                  if (inputOTPContext?.onChange) {
+                    inputOTPContext.onChange(newValue)
+                  }
                 }
               }
             }
