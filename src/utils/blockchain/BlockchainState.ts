@@ -1,3 +1,4 @@
+
 import { Block } from './types';
 import { loadChainFromStorage, saveChainToStorage } from './storage';
 
@@ -8,7 +9,7 @@ export class BlockchainState {
 
   constructor() {
     this.loadChain();
-    this.resetVotingSession();
+    this.resetVotingSession(Date.now().toString());
   }
 
   public getChain(): Block[] {
@@ -27,7 +28,7 @@ export class BlockchainState {
   public setVotingEnded(ended: boolean): void {
     this.isVotingEnded = ended;
     if (!ended) {
-      this.resetVotingSession();
+      this.resetVotingSession(Date.now().toString());
     }
   }
 
@@ -35,10 +36,10 @@ export class BlockchainState {
     return this.isVotingEnded;
   }
 
-  public resetVotingSession(): void {
+  public resetVotingSession(sessionId: string): void {
     const genesisBlock = this.chain.length > 0 ? this.chain[0] : null;
     this.chain = genesisBlock ? [genesisBlock] : [];
-    this.votingSessionId = Date.now().toString();
+    this.votingSessionId = sessionId;
     this.isVotingEnded = false;
     this.saveChain();
     console.log("BlockchainState: Voting session reset with ID:", this.votingSessionId);

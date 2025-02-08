@@ -12,6 +12,7 @@ export class VotingBlockchain {
   private voteManager: VoteManager;
   private blockchainState: BlockchainState;
   private votingResults: VotingResults;
+  private currentSessionId: string;
 
   constructor() {
     if (VotingBlockchain.instance) {
@@ -23,6 +24,7 @@ export class VotingBlockchain {
       () => this.blockchainState.getChain(),
       () => this.blockchainState.isVotingComplete()
     );
+    this.currentSessionId = Date.now().toString();
 
     if (this.blockchainState.getChain().length === 0) {
       this.createGenesisBlock();
@@ -152,8 +154,13 @@ export class VotingBlockchain {
   }
 
   public resetVotingState(): void {
-    this.blockchainState.resetVotingSession();
-    this.voteManager.resetVotingSession();
+    // Generate a single session ID for both components
+    this.currentSessionId = Date.now().toString();
+    
+    // Reset both components with the same session ID
+    this.blockchainState.resetVotingSession(this.currentSessionId);
+    this.voteManager.resetVotingSession(this.currentSessionId);
+    
     console.log("Voting state reset: Chain and voted voters cleared");
   }
 

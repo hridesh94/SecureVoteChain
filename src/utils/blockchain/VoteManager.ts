@@ -8,7 +8,7 @@ export class VoteManager {
 
   constructor() {
     this._voteVerifier = VoteVerifier.getInstance();
-    this.resetVotingSession();
+    this.resetVotingSession(Date.now().toString());
   }
 
   get voteVerifier(): VoteVerifier {
@@ -23,9 +23,9 @@ export class VoteManager {
     this.votedVoters.add(`${this.votingSessionId}-${voterId}`);
   }
 
-  public resetVotingSession(): void {
+  public resetVotingSession(sessionId: string): void {
     this.votedVoters.clear();
-    this.votingSessionId = Date.now().toString();
+    this.votingSessionId = sessionId;
     console.log("VoteManager: New voting session started with ID:", this.votingSessionId);
   }
 
