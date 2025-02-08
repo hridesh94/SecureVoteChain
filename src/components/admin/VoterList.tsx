@@ -174,7 +174,7 @@ const VoterList = ({ showVotes = false }: VoterListProps) => {
       "Location",
       "Login Attempts",
       "IP Address",
-      ...(showVotes ? ["Vote"] : []),
+      ...(showVotes ? ["Voting Status"] : []),
     ];
 
     const csvContent =
@@ -191,7 +191,7 @@ const VoterList = ({ showVotes = false }: VoterListProps) => {
             voter.location || "",
             voter.loginAttempts || "0",
             voter.ipAddress || "",
-            ...(showVotes ? [voter.vote || ""] : []),
+            ...(showVotes ? [voter.votes ? "Completed" : "Not Voted"] : []),
           ].join(",")
         )
         .join("\n");

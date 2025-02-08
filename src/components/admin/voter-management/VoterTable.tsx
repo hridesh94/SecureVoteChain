@@ -29,34 +29,30 @@ interface VoterTableProps {
 
 const VoterTable = ({ voters, showVotes = false, onToggleStatus }: VoterTableProps) => {
   return (
-    <div className="border rounded-lg">
+    <div className="w-full overflow-x-auto border rounded-lg">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>Registration Date</TableHead>
-            <TableHead>Last Activity</TableHead>
-            <TableHead>Login Attempts</TableHead>
-            <TableHead>IP Address</TableHead>
+            <TableHead className="whitespace-nowrap">ID</TableHead>
+            <TableHead className="whitespace-nowrap">Name</TableHead>
+            <TableHead className="whitespace-nowrap">Status</TableHead>
+            <TableHead className="whitespace-nowrap">Location</TableHead>
+            <TableHead className="whitespace-nowrap">Registration Date</TableHead>
+            <TableHead className="whitespace-nowrap">Last Activity</TableHead>
+            <TableHead className="whitespace-nowrap">Login Attempts</TableHead>
+            <TableHead className="whitespace-nowrap">IP Address</TableHead>
             {showVotes && (
-              <>
-                <TableHead>Local Vote</TableHead>
-                <TableHead>Provincial Vote</TableHead>
-                <TableHead>Federal Vote</TableHead>
-              </>
+              <TableHead className="whitespace-nowrap">Voting Status</TableHead>
             )}
-            <TableHead>Actions</TableHead>
+            <TableHead className="whitespace-nowrap">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {voters.map((voter) => (
             <TableRow key={voter.id}>
-              <TableCell>{voter.id}</TableCell>
-              <TableCell>{voter.name}</TableCell>
-              <TableCell>
+              <TableCell className="whitespace-nowrap">{voter.id}</TableCell>
+              <TableCell className="whitespace-nowrap">{voter.name}</TableCell>
+              <TableCell className="whitespace-nowrap">
                 <span
                   className={`px-2 py-1 rounded-full text-xs ${
                     voter.status === "voted"
@@ -69,25 +65,17 @@ const VoterTable = ({ voters, showVotes = false, onToggleStatus }: VoterTablePro
                   {voter.status}
                 </span>
               </TableCell>
-              <TableCell>{voter.location}</TableCell>
-              <TableCell>{voter.registrationDate}</TableCell>
-              <TableCell>{voter.lastActivity}</TableCell>
-              <TableCell>{voter.loginAttempts || 0}</TableCell>
-              <TableCell>{voter.ipAddress}</TableCell>
+              <TableCell className="whitespace-nowrap">{voter.location}</TableCell>
+              <TableCell className="whitespace-nowrap">{voter.registrationDate}</TableCell>
+              <TableCell className="whitespace-nowrap">{voter.lastActivity}</TableCell>
+              <TableCell className="whitespace-nowrap">{voter.loginAttempts || 0}</TableCell>
+              <TableCell className="whitespace-nowrap">{voter.ipAddress}</TableCell>
               {showVotes && (
-                <>
-                  <TableCell>
-                    {voter.votes?.local ? voter.votes.local.split('-')[1] : "Not voted"}
-                  </TableCell>
-                  <TableCell>
-                    {voter.votes?.provincial ? voter.votes.provincial.split('-')[1] : "Not voted"}
-                  </TableCell>
-                  <TableCell>
-                    {voter.votes?.federal ? voter.votes.federal.split('-')[1] : "Not voted"}
-                  </TableCell>
-                </>
+                <TableCell className="whitespace-nowrap">
+                  {voter.votes ? "Completed" : "Not Voted"}
+                </TableCell>
               )}
-              <TableCell>
+              <TableCell className="whitespace-nowrap">
                 <Button
                   variant="ghost"
                   size="sm"
