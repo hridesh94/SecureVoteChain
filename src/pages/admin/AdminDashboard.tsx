@@ -60,7 +60,13 @@ const AdminDashboard = () => {
         isVotingActive={isVotingActive}
         showResults={showResults}
         votingResults={votingResults}
-        stats={stats}
+        stats={{
+          votingProgress: stats.votingProgress,
+          remainingVoters: stats.remainingVoters,
+          activeVoters: stats.activeVoters,
+          averageVoteTime: stats.averageVoteTime,
+          invalidAttempts: stats.invalidAttempts
+        }}
         votingData={votingData}
       />
     </DashboardWrapper>

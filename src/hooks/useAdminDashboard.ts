@@ -13,7 +13,7 @@ export const useAdminDashboard = () => {
     totalVoters: 1500,
     votesCast: 0,
     votingProgress: 0,
-    remainingVoters: 0,
+    remainingVoters: 1500, // Added this field
     activeVoters: 42,
     averageVoteTime: "2.5 min",
     invalidAttempts: 23,
