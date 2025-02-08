@@ -14,7 +14,7 @@ const VotingProgress = ({ votingProgress, remainingVoters }: VotingProgressProps
       </h3>
       <Progress 
         value={votingProgress} 
-        className="h-3 mb-4 w-full bg-secondary"
+        className="h-4 mb-4 w-full bg-secondary"
       />
       <div className="flex justify-between items-center text-sm">
         <p className="text-primary/70">
@@ -29,4 +29,3 @@ const VotingProgress = ({ votingProgress, remainingVoters }: VotingProgressProps
 };
 
 export default VotingProgress;
-
