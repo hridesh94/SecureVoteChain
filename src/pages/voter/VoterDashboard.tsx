@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, User, FileText, HelpCircle, RefreshCw } from "lucide-react";
@@ -117,7 +116,7 @@ const VoterDashboard = () => {
   };
 
   const handleResetDemo = () => {
-    blockchain.resetVotingState();
+    blockchain.setDemoMode(true);
     setHasVoted(false);
     setVotes(initialVoteState);
     setSelectedPollingStation(null);
@@ -269,4 +268,3 @@ const VoterDashboard = () => {
 };
 
 export default VoterDashboard;
-
