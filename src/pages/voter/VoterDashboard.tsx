@@ -128,25 +128,29 @@ const VoterDashboard = () => {
             <h1 className="text-2xl font-semibold ml-4">मतदान डास्बोर्ड (Voter Dashboard)</h1>
           </div>
 
-          {/* Progress Tracker */}
-          <div className="flex justify-between mb-6 p-4 bg-primary/5 rounded-lg">
-            <div className="flex items-center gap-2">
-              <div className={`p-2 rounded-full ${votes.local ? 'bg-green-500' : 'bg-gray-300'}`}>
-                <CheckCircle className="w-4 h-4 text-white" />
+          {/* Simplified Progress Tracker */}
+          <div className="flex items-center justify-center mb-6 p-4 bg-primary/5 rounded-lg">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center">
+                <div className={`p-2 rounded-full ${votes.local ? 'bg-green-500' : 'bg-gray-300'}`}>
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+                <span className="ml-2">Local</span>
               </div>
-              <span>Local Level</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`p-2 rounded-full ${votes.provincial ? 'bg-green-500' : 'bg-gray-300'}`}>
-                <CheckCircle className="w-4 h-4 text-white" />
+              <span className="text-gray-400">→</span>
+              <div className="flex items-center">
+                <div className={`p-2 rounded-full ${votes.provincial ? 'bg-green-500' : 'bg-gray-300'}`}>
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+                <span className="ml-2">Provincial</span>
               </div>
-              <span>Provincial Level</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`p-2 rounded-full ${votes.federal ? 'bg-green-500' : 'bg-gray-300'}`}>
-                <CheckCircle className="w-4 h-4 text-white" />
+              <span className="text-gray-400">→</span>
+              <div className="flex items-center">
+                <div className={`p-2 rounded-full ${votes.federal ? 'bg-green-500' : 'bg-gray-300'}`}>
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+                <span className="ml-2">Federal</span>
               </div>
-              <span>Federal Level</span>
             </div>
           </div>
 
