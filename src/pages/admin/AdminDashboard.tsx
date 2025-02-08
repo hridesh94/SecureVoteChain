@@ -3,7 +3,6 @@ import DashboardWrapper from "@/components/admin/dashboard/DashboardWrapper";
 import DashboardHeader from "@/components/admin/dashboard/DashboardHeader";
 import DashboardContent from "@/components/admin/dashboard/DashboardContent";
 import VoterStats from "@/components/admin/VoterStats";
-import VotingProgress from "@/components/admin/VotingProgress";
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";
 
 const votingData = [
@@ -44,11 +43,6 @@ const AdminDashboard = () => {
         activeVoters={stats.activeVoters}
         blockedVoters={stats.blockedVoters}
         averageVoteTime={stats.averageVoteTime}
-      />
-
-      <VotingProgress
-        votingProgress={stats.votingProgress}
-        remainingVoters={stats.remainingVoters}
       />
 
       <DashboardContent
