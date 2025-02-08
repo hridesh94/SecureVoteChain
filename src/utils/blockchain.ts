@@ -1,13 +1,10 @@
-
 import CryptoJS from 'crypto-js';
+import { VoteVerifier, VerifiedVote, VoteSignature } from './voteVerification';
 
 export interface Block {
   index: number;
   timestamp: number;
-  vote: {
-    candidateId: string;
-    voterId: string;
-  };
+  vote: VerifiedVote;
   previousHash: string;
   hash: string;
   nonce: number;
@@ -18,30 +15,67 @@ export class VotingBlockchain {
   private difficulty: number = 4;
   private isVotingEnded: boolean = false;
   private static instance: VotingBlockchain;
+  private voteVerifier: VoteVerifier;
 
   constructor() {
     if (VotingBlockchain.instance) {
       return VotingBlockchain.instance;
     }
-    this.createGenesisBlock();
+    this.voteVerifier = VoteVerifier.getInstance();
+    this.loadChain();
+    if (this.chain.length === 0) {
+      this.createGenesisBlock();
+    }
     VotingBlockchain.instance = this;
   }
 
+  private loadChain(): void {
+    try {
+      const savedChain = localStorage.getItem('blockchain');
+      if (savedChain) {
+        this.chain = JSON.parse(savedChain);
+        if (!this.isChainValid()) {
+          console.error('Loaded chain is invalid');
+          this.chain = [];
+        }
+      }
+    } catch (error) {
+      console.error('Error loading blockchain:', error);
+      this.chain = [];
+    }
+  }
+
+  private saveChain(): void {
+    try {
+      localStorage.setItem('blockchain', JSON.stringify(this.chain));
+    } catch (error) {
+      console.error('Error saving blockchain:', error);
+    }
+  }
+
   private createGenesisBlock(): void {
+    const genesisVote: VerifiedVote = {
+      candidateId: "genesis",
+      voterId: "genesis",
+      signature: {
+        signature: "genesis",
+        timestamp: Date.now(),
+        publicKey: "genesis"
+      }
+    };
+
     const genesisBlock: Block = {
       index: 0,
       timestamp: Date.now(),
-      vote: {
-        candidateId: "genesis",
-        voterId: "genesis"
-      },
+      vote: genesisVote,
       previousHash: "0",
-      hash: "0",
+      hash: "",
       nonce: 0
     };
     
     genesisBlock.hash = this.calculateHash(genesisBlock);
     this.chain.push(genesisBlock);
+    this.saveChain();
   }
 
   private calculateHash(block: Omit<Block, 'hash'>): string {
@@ -63,14 +97,28 @@ export class VotingBlockchain {
       throw new Error("Voting has ended");
     }
 
+    // Create and verify vote signature
+    const signature = this.voteVerifier.signVote(candidateId, voterId);
+    if (!this.voteVerifier.verifyVoteTimestamp(signature.timestamp)) {
+      throw new Error("Vote timestamp verification failed");
+    }
+
+    const verifiedVote: VerifiedVote = {
+      candidateId,
+      voterId,
+      signature
+    };
+
+    // Verify the vote before adding to blockchain
+    if (!this.voteVerifier.verifyVote(verifiedVote)) {
+      throw new Error("Vote signature verification failed");
+    }
+
     const previousBlock = this.getLatestBlock();
     const newBlock: Block = {
       index: previousBlock.index + 1,
       timestamp: Date.now(),
-      vote: {
-        candidateId,
-        voterId
-      },
+      vote: verifiedVote,
       previousHash: previousBlock.hash,
       hash: "",
       nonce: 0
@@ -78,6 +126,7 @@ export class VotingBlockchain {
 
     newBlock.hash = this.mineBlock(newBlock);
     this.chain.push(newBlock);
+    this.saveChain();
   }
 
   private mineBlock(block: Block): string {
@@ -97,11 +146,21 @@ export class VotingBlockchain {
       const currentBlock = this.chain[i];
       const previousBlock = this.chain[i - 1];
 
+      // Verify block hash
       if (currentBlock.hash !== this.calculateHash(currentBlock)) {
         return false;
       }
 
+      // Verify chain continuity
       if (currentBlock.previousHash !== previousBlock.hash) {
+        return false;
+      }
+
+      // Skip genesis block vote verification
+      if (i === 0) continue;
+
+      // Verify vote signature
+      if (!this.voteVerifier.verifyVote(currentBlock.vote)) {
         return false;
       }
     }
@@ -155,4 +214,3 @@ export class VotingBlockchain {
     return VotingBlockchain.instance;
   }
 }
-
