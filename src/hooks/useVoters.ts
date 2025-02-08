@@ -73,34 +73,6 @@ export const useVoters = (showVotes = false) => {
     });
   };
 
-  const handleRemoveVoter = (voterId: string) => {
-    setVoters((prevVoters) => prevVoters.filter((voter) => voter.id !== voterId));
-    
-    toast({
-      title: "Voter Removed",
-      description: "The voter has been removed from the system.",
-    });
-  };
-
-  const handleResetAttempts = (voterId: string) => {
-    setVoters((prevVoters) =>
-      prevVoters.map((voter) =>
-        voter.id === voterId
-          ? {
-              ...voter,
-              loginAttempts: 0,
-              lastActivity: new Date().toISOString().split("T")[0],
-            }
-          : voter
-      )
-    );
-
-    toast({
-      title: "Login Attempts Reset",
-      description: "Login attempts have been reset for this voter.",
-    });
-  };
-
   return {
     voters,
     searchTerm,
@@ -109,8 +81,5 @@ export const useVoters = (showVotes = false) => {
     handleStatusFilter,
     handleExport,
     handleToggleStatus,
-    handleRemoveVoter,
-    handleResetAttempts,
   };
 };
-

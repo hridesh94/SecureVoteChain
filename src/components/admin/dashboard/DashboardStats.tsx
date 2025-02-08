@@ -1,5 +1,5 @@
 
-import { Users, BarChart, UserCheck, Clock, Shield, UserX } from "lucide-react";
+import { Users, BarChart, UserCheck, Clock } from "lucide-react";
 import StatCard from "@/components/admin/StatCard";
 
 interface DashboardStatsProps {
@@ -10,14 +10,12 @@ interface DashboardStatsProps {
     activeVoters: number;
     averageVoteTime: string;
     remainingVoters: number;
-    invalidAttempts: number;
-    blockedVoters: number;
   };
 }
 
 const DashboardStats = ({ stats }: DashboardStatsProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <StatCard
         title="Total Voters"
         value={stats.totalVoters}
@@ -37,26 +35,13 @@ const DashboardStats = ({ stats }: DashboardStatsProps) => {
         delay={0.3}
       />
       <StatCard
-        title="Active Voters"
-        value={stats.activeVoters}
+        title="Remaining Voters"
+        value={stats.remainingVoters}
         icon={Clock}
         delay={0.4}
-      />
-      <StatCard
-        title="Invalid Attempts"
-        value={stats.invalidAttempts}
-        icon={Shield}
-        delay={0.5}
-      />
-      <StatCard
-        title="Blocked Voters"
-        value={stats.blockedVoters}
-        icon={UserX}
-        delay={0.6}
       />
     </div>
   );
 };
 
 export default DashboardStats;
-
