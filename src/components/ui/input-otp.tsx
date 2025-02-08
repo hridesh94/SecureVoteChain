@@ -31,6 +31,9 @@ InputOTPGroup.displayName = "InputOTPGroup"
 
 interface InputOTPSlotProps extends React.ComponentPropsWithoutRef<"div"> {
   index: number;
+  char?: string;
+  hasFakeCaret?: boolean;
+  isActive?: boolean;
   disabled?: boolean;
 }
 
@@ -52,17 +55,35 @@ const InputOTPSlot = React.forwardRef<
       )}
       {...props}
     >
+      <div 
+        className={cn(
+          "absolute inset-0 w-full h-full flex items-center justify-center text-2xl font-semibold",
+          slot?.char ? "text-black" : "text-gray-400"
+        )}
+      >
+        {slot?.char || "0"}
+      </div>
       <input
         type="text"
-        pattern="\d*"
         inputMode="numeric"
-        className={cn(
-          "absolute inset-0 w-full h-full text-center text-2xl font-semibold bg-transparent border-none focus:outline-none focus:ring-0 text-black",
-          !slot?.char && "text-gray-400"
-        )}
-        value={slot?.char || ""}
-        readOnly
+        pattern="\d*"
+        maxLength={1}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        autoComplete="one-time-code"
         disabled={disabled}
+        onKeyDown={(e) => {
+          if (!/[\d\s]/.test(e.key) && !["Backspace", "Delete", "Tab"].includes(e.key)) {
+            e.preventDefault()
+          }
+        }}
+        onPaste={(e) => {
+          e.preventDefault()
+          const pastedData = e.clipboardData.getData("text/plain")
+          const numericData = pastedData.replace(/\D/g, "")
+          if (inputOTPContext?.handlePaste && numericData) {
+            inputOTPContext.handlePaste(numericData)
+          }
+        }}
       />
       {slot?.hasFakeCaret && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
