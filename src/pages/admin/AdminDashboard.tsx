@@ -1,7 +1,18 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, BarChart, Lock, Users, AlertCircle } from "lucide-react";
+import { 
+  ArrowLeft, 
+  BarChart, 
+  Lock, 
+  Users, 
+  AlertCircle, 
+  UserCheck,
+  Clock,
+  RefreshCw,
+  Download,
+  Ban
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -24,15 +35,18 @@ const mockStats = {
   votesCast: 876,
   remainingVoters: 624,
   votingProgress: 58.4,
+  activeVoters: 42,
+  averageVoteTime: "2.5 min",
+  invalidAttempts: 23,
 };
 
 const votingData = [
-  { time: "9 AM", votes: 150 },
-  { time: "10 AM", votes: 280 },
-  { time: "11 AM", votes: 420 },
-  { time: "12 PM", votes: 550 },
-  { time: "1 PM", votes: 676 },
-  { time: "2 PM", votes: 876 },
+  { time: "9 AM", votes: 150, active: 25 },
+  { time: "10 AM", votes: 280, active: 35 },
+  { time: "11 AM", votes: 420, active: 42 },
+  { time: "12 PM", votes: 550, active: 38 },
+  { time: "1 PM", votes: 676, active: 45 },
+  { time: "2 PM", votes: 876, active: 42 },
 ];
 
 const AdminDashboard = () => {
@@ -46,6 +60,28 @@ const AdminDashboard = () => {
       description: isVotingActive
         ? "The voting process has been stopped."
         : "The voting process has been started.",
+    });
+  };
+
+  const handleRefreshData = () => {
+    toast({
+      title: "Data Refreshed",
+      description: "Latest voting statistics have been loaded.",
+    });
+  };
+
+  const handleExportData = () => {
+    toast({
+      title: "Exporting Data",
+      description: "Voting data export has started.",
+    });
+  };
+
+  const handleBlockVoter = () => {
+    toast({
+      title: "Action Required",
+      description: "Please select a voter to block from the voters list.",
+      variant: "destructive",
     });
   };
 
@@ -88,15 +124,41 @@ const AdminDashboard = () => {
                 {votingStatus}
               </div>
             </div>
-            <Button
-              onClick={handleVotingToggle}
-              variant={isVotingActive ? "destructive" : "default"}
-            >
-              {isVotingActive ? "Stop Voting" : "Start Voting"}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefreshData}
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportData}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBlockVoter}
+              >
+                <Ban className="w-4 h-4 mr-2" />
+                Block Voter
+              </Button>
+              <Button
+                onClick={handleVotingToggle}
+                variant={isVotingActive ? "destructive" : "default"}
+              >
+                {isVotingActive ? "Stop Voting" : "Start Voting"}
+              </Button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -127,13 +189,26 @@ const AdminDashboard = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="p-6 rounded-lg border border-white/20 lg:col-span-1"
+              className="p-6 rounded-lg border border-white/20"
             >
               <div className="flex items-center mb-4">
-                <Users className="w-5 h-5 text-primary mr-2" />
-                <h3 className="font-semibold">Remaining Voters</h3>
+                <UserCheck className="w-5 h-5 text-primary mr-2" />
+                <h3 className="font-semibold">Active Voters</h3>
               </div>
-              <p className="text-3xl font-semibold">{mockStats.remainingVoters}</p>
+              <p className="text-3xl font-semibold">{mockStats.activeVoters}</p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="p-6 rounded-lg border border-white/20"
+            >
+              <div className="flex items-center mb-4">
+                <Clock className="w-5 h-5 text-primary mr-2" />
+                <h3 className="font-semibold">Avg. Vote Time</h3>
+              </div>
+              <p className="text-3xl font-semibold">{mockStats.averageVoteTime}</p>
             </motion.div>
           </div>
 
@@ -152,54 +227,89 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            <div className="p-6 rounded-lg border border-white/20">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-semibold">Voting Trends</h3>
-                <div className="flex items-center text-sm text-primary/70">
-                  <AlertCircle className="w-4 h-4 mr-2" />
-                  Updated every hour
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="p-6 rounded-lg border border-white/20">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-semibold">Voting Trends</h3>
+                  <div className="flex items-center text-sm text-primary/70">
+                    <AlertCircle className="w-4 h-4 mr-2" />
+                    Updated every hour
+                  </div>
+                </div>
+                <div className="h-[300px]">
+                  <ChartContainer
+                    className="w-full h-full"
+                    config={{
+                      votes: {
+                        theme: {
+                          light: "hsl(var(--primary))",
+                          dark: "hsl(var(--primary))",
+                        },
+                      },
+                    }}
+                  >
+                    <AreaChart data={votingData}>
+                      <defs>
+                        <linearGradient id="colorVotes" x1="0" y1="0" x2="0" y2="1">
+                          <stop
+                            offset="5%"
+                            stopColor="hsl(var(--primary))"
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="hsl(var(--primary))"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                      <XAxis dataKey="time" />
+                      <YAxis />
+                      <Tooltip content={<ChartTooltipContent />} />
+                      <Area
+                        type="monotone"
+                        dataKey="votes"
+                        stroke="hsl(var(--primary))"
+                        fillOpacity={1}
+                        fill="url(#colorVotes)"
+                      />
+                    </AreaChart>
+                  </ChartContainer>
                 </div>
               </div>
-              <div className="h-[300px]">
-                <ChartContainer
-                  className="w-full h-full"
-                  config={{
-                    votes: {
-                      theme: {
-                        light: "hsl(var(--primary))",
-                        dark: "hsl(var(--primary))",
-                      },
-                    },
-                  }}
-                >
-                  <AreaChart data={votingData}>
-                    <defs>
-                      <linearGradient id="colorVotes" x1="0" y1="0" x2="0" y2="1">
-                        <stop
-                          offset="5%"
-                          stopColor="hsl(var(--primary))"
-                          stopOpacity={0.3}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="hsl(var(--primary))"
-                          stopOpacity={0}
-                        />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                    <XAxis dataKey="time" />
-                    <YAxis />
-                    <Tooltip content={<ChartTooltipContent />} />
-                    <Area
-                      type="monotone"
-                      dataKey="votes"
-                      stroke="hsl(var(--primary))"
-                      fillOpacity={1}
-                      fill="url(#colorVotes)"
-                    />
-                  </AreaChart>
-                </ChartContainer>
+
+              <div className="p-6 rounded-lg border border-white/20">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-semibold">Security Overview</h3>
+                  <div className="flex items-center text-sm text-primary/70">
+                    <AlertCircle className="w-4 h-4 mr-2" />
+                    Real-time monitoring
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-4 bg-secondary/50 rounded-lg">
+                    <div className="flex items-center">
+                      <UserCheck className="w-5 h-5 text-green-500 mr-2" />
+                      <span>Active Sessions</span>
+                    </div>
+                    <span className="font-semibold">{mockStats.activeVoters}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-4 bg-secondary/50 rounded-lg">
+                    <div className="flex items-center">
+                      <Ban className="w-5 h-5 text-red-500 mr-2" />
+                      <span>Invalid Attempts</span>
+                    </div>
+                    <span className="font-semibold">{mockStats.invalidAttempts}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-4 bg-secondary/50 rounded-lg">
+                    <div className="flex items-center">
+                      <Clock className="w-5 h-5 text-blue-500 mr-2" />
+                      <span>Average Vote Time</span>
+                    </div>
+                    <span className="font-semibold">{mockStats.averageVoteTime}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
