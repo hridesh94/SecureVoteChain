@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { VotingBlockchain } from "@/utils/blockchain";
 
-// Initialize blockchain instance
+// Import the shared blockchain instance
 const blockchain = new VotingBlockchain();
 
 interface Candidate {
@@ -19,19 +19,19 @@ interface Candidate {
 
 const mockCandidates: Candidate[] = [
   {
-    id: "1",
+    id: "C001",  // Updated to match admin panel candidate IDs
     name: "John Smith",
     party: "Progressive Party",
     symbol: "🌟",
   },
   {
-    id: "2",
+    id: "C002",
     name: "Sarah Johnson",
     party: "Liberty Party",
     symbol: "🌿",
   },
   {
-    id: "3",
+    id: "C003",
     name: "Michael Lee",
     party: "Unity Party",
     symbol: "🌈",
@@ -40,6 +40,7 @@ const mockCandidates: Candidate[] = [
 
 const VoterDashboard = () => {
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
+  const [hasVoted, setHasVoted] = useState(false);
   const { toast } = useToast();
 
   const handleVote = () => {
@@ -53,13 +54,18 @@ const VoterDashboard = () => {
     }
 
     try {
+      // Generate a unique voter ID (in a real app, this would come from authentication)
+      const voterId = `V${Date.now()}`;
+      
       // Add the vote to the blockchain
-      // In a real app, we'd get the voter ID from authentication
-      const mockVoterId = "voter-" + Date.now();
-      blockchain.addBlock(selectedCandidate, mockVoterId);
+      blockchain.addBlock(selectedCandidate, voterId);
 
+      // Log the vote for verification
       console.log("Vote recorded in blockchain:", blockchain.getChain());
 
+      // Update UI state
+      setHasVoted(true);
+      
       toast({
         title: "Vote Confirmation",
         description: "Your vote has been securely recorded on the blockchain.",
@@ -76,6 +82,28 @@ const VoterDashboard = () => {
       console.error("Voting error:", error);
     }
   };
+
+  if (hasVoted) {
+    return (
+      <div className="min-h-screen w-full bg-secondary p-4">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-card backdrop-blur-md rounded-lg p-8 border border-white/20 text-center"
+          >
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-semibold mb-4">Thank You for Voting!</h2>
+            <p className="text-primary/70 mb-6">Your vote has been securely recorded.</p>
+            <Link to="/">
+              <Button variant="outline">Return to Home</Button>
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-secondary p-4">
@@ -142,3 +170,4 @@ const VoterDashboard = () => {
 };
 
 export default VoterDashboard;
+

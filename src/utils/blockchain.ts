@@ -17,9 +17,14 @@ export class VotingBlockchain {
   private chain: Block[] = [];
   private difficulty: number = 4;
   private isVotingEnded: boolean = false;
+  private static instance: VotingBlockchain;
 
   constructor() {
+    if (VotingBlockchain.instance) {
+      return VotingBlockchain.instance;
+    }
     this.createGenesisBlock();
+    VotingBlockchain.instance = this;
   }
 
   private createGenesisBlock(): void {
@@ -54,6 +59,10 @@ export class VotingBlockchain {
   }
 
   public addBlock(candidateId: string, voterId: string): void {
+    if (this.isVotingEnded) {
+      throw new Error("Voting has ended");
+    }
+
     const previousBlock = this.getLatestBlock();
     const newBlock: Block = {
       index: previousBlock.index + 1,
@@ -137,4 +146,13 @@ export class VotingBlockchain {
   public isVotingComplete(): boolean {
     return this.isVotingEnded;
   }
+
+  // Singleton instance getter
+  public static getInstance(): VotingBlockchain {
+    if (!VotingBlockchain.instance) {
+      VotingBlockchain.instance = new VotingBlockchain();
+    }
+    return VotingBlockchain.instance;
+  }
 }
+
