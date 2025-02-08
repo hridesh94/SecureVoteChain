@@ -56,15 +56,18 @@ export const useVoters = (showVotes = false) => {
 
   const handleToggleStatus = (voterId: string) => {
     setVoters((prevVoters) =>
-      prevVoters.map((voter) =>
-        voter.id === voterId
-          ? {
-              ...voter,
-              status: voter.status === "blocked" ? "registered" : "blocked",
-              lastActivity: new Date().toISOString().split("T")[0],
-            }
-          : voter
-      )
+      prevVoters.map((voter) => {
+        if (voter.id === voterId) {
+          const newStatus = voter.status === "blocked" ? "registered" : "blocked";
+          // Trigger update in the blockchain
+          return {
+            ...voter,
+            status: newStatus,
+            lastActivity: new Date().toISOString().split("T")[0],
+          };
+        }
+        return voter;
+      })
     );
 
     toast({

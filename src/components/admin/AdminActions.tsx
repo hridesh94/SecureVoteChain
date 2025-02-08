@@ -2,7 +2,6 @@
 import { 
   RefreshCw, 
   Download, 
-  Ban, 
   Eye, 
   EyeOff 
 } from "lucide-react";
@@ -13,7 +12,6 @@ interface AdminActionsProps {
   showResults: boolean;
   onRefresh: () => void;
   onExport: () => void;
-  onBlock: () => void;
   onToggleResults: () => void;
   onVotingToggle: () => void;
 }
@@ -23,7 +21,6 @@ const AdminActions = ({
   showResults,
   onRefresh,
   onExport,
-  onBlock,
   onToggleResults,
   onVotingToggle,
 }: AdminActionsProps) => {
@@ -36,10 +33,6 @@ const AdminActions = ({
       <Button variant="outline" size="sm" onClick={onExport}>
         <Download className="w-4 h-4 mr-2" />
         Export
-      </Button>
-      <Button variant="outline" size="sm" onClick={onBlock}>
-        <Ban className="w-4 h-4 mr-2" />
-        Block Voter
       </Button>
       {!isVotingActive && (
         <Button variant="outline" size="sm" onClick={onToggleResults}>
