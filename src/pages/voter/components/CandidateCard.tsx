@@ -33,9 +33,18 @@ const CandidateCard = ({
       onClick={() => onSelect(candidate.id)}
     >
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-3xl">{candidate.symbol}</span>
-          <span className="text-2xl">{candidate.partyFlag}</span>
+        <div className="flex items-center gap-4">
+          <img 
+            src={candidate.photo} 
+            alt={candidate.name}
+            className="w-16 h-16 rounded-full object-cover"
+          />
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{candidate.symbol}</span>
+              <span className="text-xl">{candidate.partyFlag}</span>
+            </div>
+          </div>
         </div>
         {isSelected && <CheckCircle className="w-5 h-5 text-primary" />}
       </div>

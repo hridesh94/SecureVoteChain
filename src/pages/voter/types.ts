@@ -12,4 +12,5 @@ export interface Candidate {
   age: number;
   level: "local" | "provincial" | "federal";
   position: string;
+  photo: string;
 }
