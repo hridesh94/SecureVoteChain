@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { VotingBlockchain } from "@/utils/blockchain";
@@ -8,6 +9,12 @@ import ExportButton from "./voter-management/ExportButton";
 
 const blockchain = VotingBlockchain.getInstance();
 
+interface Vote {
+  local?: string;
+  provincial?: string;
+  federal?: string;
+}
+
 interface Voter {
   id: string;
   name: string;
@@ -17,7 +24,7 @@ interface Voter {
   location?: string;
   loginAttempts?: number;
   ipAddress?: string;
-  vote?: string;
+  votes?: Vote;
 }
 
 const mockVoters: Voter[] = [
@@ -30,7 +37,11 @@ const mockVoters: Voter[] = [
     location: "Kathmandu",
     loginAttempts: 2,
     ipAddress: "192.168.1.1",
-    vote: "F001-Nepal Communist Party (UML)"
+    votes: {
+      local: "L001-Nepali Congress",
+      provincial: "P002-Nepal Communist Party (UML)",
+      federal: "F001-Nepal Communist Party (UML)"
+    }
   },
   {
     id: "V002",
@@ -61,7 +72,11 @@ const mockVoters: Voter[] = [
     location: "Pokhara",
     loginAttempts: 1,
     ipAddress: "192.168.1.4",
-    vote: "F003-Nepali Congress"
+    votes: {
+      local: "L003-Nepali Congress",
+      provincial: "P001-Nepal Communist Party (Maoist)",
+      federal: "F003-Nepali Congress"
+    }
   },
   {
     id: "V005",
@@ -89,22 +104,34 @@ const VoterList = ({ showVotes = false }: VoterListProps) => {
     const updateVotersFromBlockchain = () => {
       const chain = blockchain.getChain();
       const votedIds = new Set<string>();
+      const voterVotes: { [key: string]: Vote } = {};
       
       chain.forEach(block => {
         if (block.vote.voterId !== "genesis") {
           votedIds.add(block.vote.voterId);
+          if (!voterVotes[block.vote.voterId]) {
+            voterVotes[block.vote.voterId] = {};
+          }
+          // Extract level from candidateId (L for local, P for provincial, F for federal)
+          const level = block.vote.candidateId.charAt(0).toLowerCase() === 'l' 
+            ? 'local' 
+            : block.vote.candidateId.charAt(0).toLowerCase() === 'p'
+              ? 'provincial'
+              : 'federal';
+          voterVotes[block.vote.voterId][level] = block.vote.candidateId;
         }
       });
 
       setVoters(prev => prev.map(voter => {
         if (votedIds.has(voter.id)) {
-          const voterBlocks = chain.filter(block => block.vote.voterId === voter.id);
-          const lastVote = voterBlocks[voterBlocks.length - 1];
+          const lastVoteBlock = chain
+            .filter(block => block.vote.voterId === voter.id)
+            .pop();
           return {
             ...voter,
             status: "voted",
-            lastActivity: new Date(lastVote.timestamp).toISOString().split('T')[0],
-            vote: lastVote.vote.candidateId
+            lastActivity: new Date(lastVoteBlock?.timestamp || '').toISOString().split('T')[0],
+            votes: voterVotes[voter.id]
           };
         }
         return voter;

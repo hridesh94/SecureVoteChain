@@ -3,6 +3,12 @@ import { UserCheck, UserX } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 
+interface Vote {
+  local?: string;
+  provincial?: string;
+  federal?: string;
+}
+
 interface Voter {
   id: string;
   name: string;
@@ -12,7 +18,7 @@ interface Voter {
   location?: string;
   loginAttempts?: number;
   ipAddress?: string;
-  vote?: string;
+  votes?: Vote;
 }
 
 interface VoterTableProps {
@@ -35,7 +41,13 @@ const VoterTable = ({ voters, showVotes = false, onToggleStatus }: VoterTablePro
             <TableHead>Last Activity</TableHead>
             <TableHead>Login Attempts</TableHead>
             <TableHead>IP Address</TableHead>
-            {showVotes && <TableHead>Vote</TableHead>}
+            {showVotes && (
+              <>
+                <TableHead>Local Vote</TableHead>
+                <TableHead>Provincial Vote</TableHead>
+                <TableHead>Federal Vote</TableHead>
+              </>
+            )}
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -63,9 +75,17 @@ const VoterTable = ({ voters, showVotes = false, onToggleStatus }: VoterTablePro
               <TableCell>{voter.loginAttempts || 0}</TableCell>
               <TableCell>{voter.ipAddress}</TableCell>
               {showVotes && (
-                <TableCell>
-                  {voter.vote ? voter.vote.split('-')[1] : "Not voted"}
-                </TableCell>
+                <>
+                  <TableCell>
+                    {voter.votes?.local ? voter.votes.local.split('-')[1] : "Not voted"}
+                  </TableCell>
+                  <TableCell>
+                    {voter.votes?.provincial ? voter.votes.provincial.split('-')[1] : "Not voted"}
+                  </TableCell>
+                  <TableCell>
+                    {voter.votes?.federal ? voter.votes.federal.split('-')[1] : "Not voted"}
+                  </TableCell>
+                </>
               )}
               <TableCell>
                 <Button
