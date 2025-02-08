@@ -1,3 +1,4 @@
+
 import VotingProgress from "@/components/admin/VotingProgress";
 import VotingResults from "@/components/admin/VotingResults";
 import VotingChart from "@/components/admin/VotingChart";
@@ -34,13 +35,7 @@ const DashboardContent = ({
             votingProgress={stats.votingProgress}
             remainingVoters={stats.remainingVoters}
           />
-          <div className="p-6 rounded-lg border border-white/20 backdrop-blur-sm">
-            <h3 className="font-semibold mb-4 text-lg flex items-center justify-between">
-              Voting Trends
-              <span className="text-sm font-normal text-primary/70">Updated every hour</span>
-            </h3>
-            <VotingChart data={votingData} />
-          </div>
+          <VotingChart data={votingData} />
         </div>
         <div className="space-y-6">
           <SecurityOverview stats={stats} />
