@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, User, FileText, HelpCircle, RefreshCw } from "lucide-react";
@@ -30,6 +31,7 @@ const VoterDashboard = () => {
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [currentLevel, setCurrentLevel] = useState<VoteLevel>("local");
   const [showInstructions, setShowInstructions] = useState(true);
+  const [voterId, setVoterId] = useState<string>(`V${Date.now()}`);
   const { toast } = useToast();
 
   const handlePollingStationSelect = (stationId: string) => {
@@ -60,8 +62,6 @@ const VoterDashboard = () => {
     }
 
     try {
-      const voterId = `V${Date.now()}`;
-      
       // Use Promise.all to handle multiple blockchain transactions
       await Promise.all(
         Object.entries(votes).map(([level, candidateId]) => {
@@ -122,6 +122,7 @@ const VoterDashboard = () => {
     setVotes(initialVoteState);
     setSelectedPollingStation(null);
     setCurrentLevel("local");
+    setVoterId(`V${Date.now()}`); // Generate a new voter ID when resetting
     toast({
       title: "Demo Reset",
       description: "Voting state has been reset for demo purposes.",
@@ -268,3 +269,4 @@ const VoterDashboard = () => {
 };
 
 export default VoterDashboard;
+
