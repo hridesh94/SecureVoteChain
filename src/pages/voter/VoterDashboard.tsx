@@ -1,7 +1,6 @@
-
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, User, FileText, HelpCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, User, FileText, HelpCircle, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -15,36 +14,34 @@ import VotingInstructions from "./components/VotingInstructions";
 
 const blockchain = VotingBlockchain.getInstance();
 
+type VoteLevel = "local" | "provincial" | "federal";
+type VoteState = Record<VoteLevel, string | null>;
+
+const initialVoteState: VoteState = {
+  local: null,
+  provincial: null,
+  federal: null,
+};
+
 const VoterDashboard = () => {
   const [selectedPollingStation, setSelectedPollingStation] = useState<string | null>(null);
-  const [votes, setVotes] = useState<{
-    local: string | null;
-    provincial: string | null;
-    federal: string | null;
-  }>({
-    local: null,
-    provincial: null,
-    federal: null,
-  });
-  
+  const [votes, setVotes] = useState<VoteState>(initialVoteState);
   const [hasVoted, setHasVoted] = useState(false);
   const [showDetails, setShowDetails] = useState<string | null>(null);
-  const [currentLevel, setCurrentLevel] = useState<"local" | "provincial" | "federal">("local");
+  const [currentLevel, setCurrentLevel] = useState<VoteLevel>("local");
   const [showInstructions, setShowInstructions] = useState(true);
   const { toast } = useToast();
 
   const handlePollingStationSelect = (stationId: string) => {
     setSelectedPollingStation(stationId);
-    // Reset votes when polling station changes
-    setVotes({
-      local: null,
-      provincial: null,
-      federal: null,
-    });
+    setVotes(initialVoteState);
+    setCurrentLevel("local");
   };
 
-  const handleVote = () => {
-    if (!votes.local || !votes.provincial || !votes.federal) {
+  const handleVote = async () => {
+    const areAllVotesSubmitted = Object.values(votes).every(vote => vote !== null);
+    
+    if (!areAllVotesSubmitted) {
       toast({
         title: "Incomplete Votes",
         description: "Please select a candidate for each level (Local, Provincial, and Federal) before submitting.",
@@ -55,11 +52,9 @@ const VoterDashboard = () => {
 
     if (blockchain.isVotingComplete()) {
       toast({
-        title: "⚠️ Voting Period Ended",
-        description: "The election voting period has ended. No more votes can be accepted at this time.",
+        title: "Voting Ended",
+        description: "The voting period has ended.",
         variant: "destructive",
-        duration: 7000, // Show for 7 seconds
-        className: "bg-white border-2 border-red-500 text-red-900 font-medium shadow-xl",
       });
       return;
     }
@@ -67,23 +62,14 @@ const VoterDashboard = () => {
     try {
       const voterId = `V${Date.now()}`;
       
-      // Check if voter has already voted
-      if (blockchain.hasVoted(voterId)) {
-        toast({
-          title: "Double Voting Detected",
-          description: "You have already cast your vote in this election. Each voter is allowed only one vote.",
-          variant: "destructive",
-          duration: 5000, // Show for 5 seconds
-          className: "bg-white border-2 border-red-500 text-red-900 font-medium shadow-xl z-50",
-        });
-        return;
-      }
-
-      Object.entries(votes).forEach(([level, candidateId]) => {
-        if (candidateId) {
-          blockchain.addBlock(candidateId, voterId);
-        }
-      });
+      // Use Promise.all to handle multiple blockchain transactions
+      await Promise.all(
+        Object.entries(votes).map(([level, candidateId]) => {
+          if (candidateId) {
+            return blockchain.addBlock(candidateId, voterId);
+          }
+        })
+      );
       
       setHasVoted(true);
       toast({
@@ -99,9 +85,8 @@ const VoterDashboard = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "There was an error recording your votes. Please try again.",
+        description: "You have already voted. धन्यवाद! (Thank you!) ",
         variant: "destructive",
-        duration: 5000,
       });
       console.error("Voting error:", error);
     }
@@ -118,44 +103,83 @@ const VoterDashboard = () => {
       description: `Candidate selected for ${currentLevel} level. You can now proceed to the next level.`,
     });
 
-    if (currentLevel === "local") {
-      setCurrentLevel("provincial");
-    } else if (currentLevel === "provincial") {
-      setCurrentLevel("federal");
+    // Use a lookup table for level transitions
+    const nextLevel: Record<VoteLevel, VoteLevel | null> = {
+      local: "provincial",
+      provincial: "federal",
+      federal: null
+    };
+
+    const next = nextLevel[currentLevel];
+    if (next) {
+      setCurrentLevel(next);
     }
+  };
+
+  const handleResetDemo = () => {
+    blockchain.resetVotingState();
+    setHasVoted(false);
+    setVotes(initialVoteState);
+    setSelectedPollingStation(null);
+    setCurrentLevel("local");
+    toast({
+      title: "Demo Reset",
+      description: "Voting state has been reset for demo purposes.",
+      className: "bg-white border-2 border-blue-500 text-blue-900 font-medium shadow-xl",
+    });
   };
 
   const selectedStation = selectedPollingStation 
     ? mockPollingStations.find(ps => ps.id === selectedPollingStation)
     : null;
 
-  const filteredCandidates = mockCandidates.filter(
-    candidate => {
-      if (!selectedStation) return false;
-      return candidate.level === currentLevel && 
-             candidate.id.startsWith(selectedStation.constituencies[currentLevel].id);
-    }
-  );
+  const filteredCandidates = selectedStation
+    ? mockCandidates.filter(candidate => 
+        candidate.level === currentLevel && 
+        candidate.id.startsWith(selectedStation.constituencies[currentLevel].id)
+      )
+    : [];
 
   if (hasVoted) {
-    return <VoteSuccess />;
+    return (
+      <div className="relative">
+        <VoteSuccess />
+        <Button
+          onClick={handleResetDemo}
+          className="absolute top-4 right-4 flex items-center gap-2 bg-blue-500 hover:bg-blue-600"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Reset Demo
+        </Button>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-secondary via-secondary/50 to-white/80 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        <Link
-          to="/"
-          className="inline-flex items-center text-primary hover:text-primary/80 mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Home
-        </Link>
+        <div className="flex items-center justify-between mb-8">
+          <Link
+            to="/"
+            className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Link>
+          <Button
+            onClick={handleResetDemo}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Reset Demo
+          </Button>
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
           className="bg-white backdrop-blur-md rounded-xl p-6 sm:p-8 border border-primary/10 shadow-xl"
         >
           <div className="flex items-center justify-between mb-8">
@@ -175,26 +199,33 @@ const VoterDashboard = () => {
             </Button>
           </div>
 
-          {showInstructions && (
+          <AnimatePresence>
+            {showInstructions && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mb-8"
+              >
+                <VotingInstructions currentLevel={currentLevel} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {selectedPollingStation && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
               className="mb-8"
             >
-              <VotingInstructions currentLevel={currentLevel} />
-            </motion.div>
-          )}
-
-          {selectedPollingStation && (
-            <div className="mb-8">
               <ProgressTracker 
                 currentLevel={currentLevel}
                 votes={votes}
                 setCurrentLevel={setCurrentLevel}
               />
-            </div>
+            </motion.div>
           )}
 
           <div className="mb-8">
@@ -205,7 +236,11 @@ const VoterDashboard = () => {
           </div>
 
           {selectedPollingStation && (
-            <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
               <div className="mb-8">
                 <CandidateList
                   candidates={filteredCandidates}
@@ -224,7 +259,7 @@ const VoterDashboard = () => {
               >
                 Submit All Votes (सबै मतहरू पेश गर्नुहोस्)
               </Button>
-            </>
+            </motion.div>
           )}
         </motion.div>
       </div>
@@ -233,4 +268,3 @@ const VoterDashboard = () => {
 };
 
 export default VoterDashboard;
-
