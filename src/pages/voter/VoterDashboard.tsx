@@ -5,6 +5,10 @@ import { ArrowLeft, User, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { VotingBlockchain } from "@/utils/blockchain";
+
+// Initialize blockchain instance
+const blockchain = new VotingBlockchain();
 
 interface Candidate {
   id: string;
@@ -48,10 +52,29 @@ const VoterDashboard = () => {
       return;
     }
 
-    toast({
-      title: "Vote Confirmation",
-      description: "Your vote has been recorded successfully.",
-    });
+    try {
+      // Add the vote to the blockchain
+      // In a real app, we'd get the voter ID from authentication
+      const mockVoterId = "voter-" + Date.now();
+      blockchain.addBlock(selectedCandidate, mockVoterId);
+
+      console.log("Vote recorded in blockchain:", blockchain.getChain());
+
+      toast({
+        title: "Vote Confirmation",
+        description: "Your vote has been securely recorded on the blockchain.",
+      });
+
+      // Reset selection after successful vote
+      setSelectedCandidate(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was an error recording your vote. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Voting error:", error);
+    }
   };
 
   return (
