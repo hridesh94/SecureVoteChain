@@ -3,15 +3,9 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { VotingBlockchain } from "@/utils/blockchain";
-import StatCard from "@/components/admin/StatCard";
-import VotingChart from "@/components/admin/VotingChart";
-import SecurityOverview from "@/components/admin/SecurityOverview";
-import VoterList from "@/components/admin/VoterList";
-import AdminHeader from "@/components/admin/AdminHeader";
-import AdminActions from "@/components/admin/AdminActions";
-import VotingProgress from "@/components/admin/VotingProgress";
-import VotingResults from "@/components/admin/VotingResults";
-import { Users, BarChart, UserCheck, Clock } from "lucide-react";
+import DashboardHeader from "@/components/admin/dashboard/DashboardHeader";
+import DashboardStats from "@/components/admin/dashboard/DashboardStats";
+import DashboardContent from "@/components/admin/dashboard/DashboardContent";
 
 const blockchain = VotingBlockchain.getInstance();
 
@@ -155,68 +149,25 @@ const AdminDashboard = () => {
           transition={{ duration: 0.6 }}
           className="bg-card backdrop-blur-md rounded-lg p-6 border border-white/20"
         >
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-8">
-            <AdminHeader isVotingActive={isVotingActive} />
-            <AdminActions
-              isVotingActive={isVotingActive}
-              showResults={showResults}
-              onRefresh={handleRefreshData}
-              onExport={handleExportData}
-              onBlock={handleBlockVoter}
-              onToggleResults={handleToggleResults}
-              onVotingToggle={handleVotingToggle}
-            />
-          </div>
+          <DashboardHeader
+            isVotingActive={isVotingActive}
+            showResults={showResults}
+            onRefresh={handleRefreshData}
+            onExport={handleExportData}
+            onBlock={handleBlockVoter}
+            onToggleResults={handleToggleResults}
+            onVotingToggle={handleVotingToggle}
+          />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatCard
-              title="Total Voters"
-              value={stats.totalVoters}
-              icon={Users}
-              delay={0.1}
-            />
-            <StatCard
-              title="Votes Cast"
-              value={stats.votesCast}
-              icon={BarChart}
-              delay={0.2}
-            />
-            <StatCard
-              title="Active Voters"
-              value={stats.activeVoters}
-              icon={UserCheck}
-              delay={0.3}
-            />
-            <StatCard
-              title="Avg. Vote Time"
-              value={stats.averageVoteTime}
-              icon={Clock}
-              delay={0.4}
-            />
-          </div>
+          <DashboardStats stats={stats} />
 
-          <div className="space-y-6">
-            <VotingProgress
-              votingProgress={stats.votingProgress}
-              remainingVoters={stats.remainingVoters}
-            />
-
-            {!isVotingActive && showResults && (
-              <VotingResults results={votingResults} />
-            )}
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <VotingChart data={votingData} />
-              <SecurityOverview stats={stats} />
-            </div>
-
-            <div className="bg-white rounded-lg border shadow-sm">
-              <div className="p-6">
-                <h3 className="font-semibold mb-4">Voter Management</h3>
-                <VoterList showVotes={!isVotingActive && showResults} />
-              </div>
-            </div>
-          </div>
+          <DashboardContent
+            isVotingActive={isVotingActive}
+            showResults={showResults}
+            votingResults={votingResults}
+            stats={stats}
+            votingData={votingData}
+          />
         </motion.div>
       </div>
     </div>
