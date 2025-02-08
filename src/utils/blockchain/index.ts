@@ -190,4 +190,4 @@ export class VotingBlockchain {
   }
 }
 
-export type { Block };
+export type { Block } from './types';
