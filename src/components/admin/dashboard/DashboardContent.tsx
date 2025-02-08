@@ -1,4 +1,3 @@
-
 import VotingProgress from "@/components/admin/VotingProgress";
 import VotingResults from "@/components/admin/VotingResults";
 import VotingChart from "@/components/admin/VotingChart";
@@ -35,18 +34,24 @@ const DashboardContent = ({
             votingProgress={stats.votingProgress}
             remainingVoters={stats.remainingVoters}
           />
-          <VotingChart data={votingData} />
+          <div className="p-6 rounded-lg border border-white/20 backdrop-blur-sm">
+            <h3 className="font-semibold mb-4 text-lg flex items-center justify-between">
+              Voting Trends
+              <span className="text-sm font-normal text-primary/70">Updated every hour</span>
+            </h3>
+            <VotingChart data={votingData} />
+          </div>
         </div>
         <div className="space-y-6">
           <SecurityOverview stats={stats} />
           <div className="p-6 rounded-lg border border-white/20 backdrop-blur-sm">
             <h3 className="font-semibold mb-4 text-lg">Vote Audit System</h3>
             <div className="flex flex-col gap-4">
-              <button className="bg-primary/90 text-white px-4 py-2 rounded-lg hover:bg-primary transition-colors flex items-center justify-center gap-2">
+              <button className="bg-primary/90 text-white px-4 py-3 rounded-lg hover:bg-primary transition-colors flex items-center justify-center gap-2">
                 <Shield className="w-4 h-4" />
                 Perform Audit
               </button>
-              <button className="border border-primary/20 px-4 py-2 rounded-lg hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
+              <button className="border border-primary/20 px-4 py-3 rounded-lg hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
                 <FileSpreadsheet className="w-4 h-4" />
                 Export Audit Trail
               </button>
@@ -70,4 +75,3 @@ const DashboardContent = ({
 };
 
 export default DashboardContent;
-

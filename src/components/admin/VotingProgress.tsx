@@ -8,8 +8,8 @@ interface VotingProgressProps {
 
 const VotingProgress = ({ votingProgress, remainingVoters }: VotingProgressProps) => {
   return (
-    <div className="p-6 rounded-lg border border-white/20 backdrop-blur-sm mb-8">
-      <h3 className="font-semibold mb-4 text-lg flex items-center">
+    <div className="p-6 rounded-lg border border-white/20 backdrop-blur-sm">
+      <h3 className="font-semibold mb-4 text-lg">
         Voting Progress
       </h3>
       <Progress 
