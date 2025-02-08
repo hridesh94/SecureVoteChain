@@ -8,7 +8,6 @@ interface DashboardHeaderProps {
   showResults: boolean;
   onRefresh: () => void;
   onExport: () => void;
-  onBlock: () => void;
   onToggleResults: () => void;
   onVotingToggle: () => void;
 }
@@ -18,7 +17,6 @@ const DashboardHeader = ({
   showResults,
   onRefresh,
   onExport,
-  onBlock,
   onToggleResults,
   onVotingToggle,
 }: DashboardHeaderProps) => {
@@ -30,7 +28,6 @@ const DashboardHeader = ({
         showResults={showResults}
         onRefresh={onRefresh}
         onExport={onExport}
-        onBlock={onBlock}
         onToggleResults={onToggleResults}
         onVotingToggle={onVotingToggle}
       />
