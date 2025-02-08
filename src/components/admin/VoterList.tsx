@@ -1,16 +1,19 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Download, UserCheck, UserX, Filter } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { VotingBlockchain } from "@/utils/blockchain";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+const blockchain = VotingBlockchain.getInstance();
 
 interface Voter {
   id: string;
@@ -27,36 +30,56 @@ interface Voter {
 const mockVoters: Voter[] = [
   {
     id: "V001",
-    name: "John Doe",
+    name: "Aarav Sharma",
     status: "voted",
     registrationDate: "2024-02-15",
     lastActivity: "2024-02-20",
-    location: "New York",
+    location: "Kathmandu",
     loginAttempts: 2,
     ipAddress: "192.168.1.1",
-    vote: "C001"
+    vote: "F001-Nepal Communist Party (UML)"
   },
   {
     id: "V002",
-    name: "Jane Smith",
+    name: "Priya Adhikari",
     status: "registered",
     registrationDate: "2024-02-16",
     lastActivity: "2024-02-19",
-    location: "Los Angeles",
+    location: "Lalitpur",
     loginAttempts: 1,
     ipAddress: "192.168.1.2"
   },
   {
     id: "V003",
-    name: "Alice Johnson",
-    status: "blocked",
+    name: "Rajesh Poudel",
+    status: "registered",
     registrationDate: "2024-02-14",
     lastActivity: "2024-02-18",
-    location: "Chicago",
-    loginAttempts: 5,
-    ipAddress: "192.168.1.3",
-    vote: "C002"
+    location: "Bhaktapur",
+    loginAttempts: 0,
+    ipAddress: "192.168.1.3"
   },
+  {
+    id: "V004",
+    name: "Sita Karki",
+    status: "voted",
+    registrationDate: "2024-02-13",
+    lastActivity: "2024-02-20",
+    location: "Pokhara",
+    loginAttempts: 1,
+    ipAddress: "192.168.1.4",
+    vote: "F003-Nepali Congress"
+  },
+  {
+    id: "V005",
+    name: "Bishnu Thapa",
+    status: "blocked",
+    registrationDate: "2024-02-12",
+    lastActivity: "2024-02-17",
+    location: "Kathmandu",
+    loginAttempts: 5,
+    ipAddress: "192.168.1.5"
+  }
 ];
 
 interface VoterListProps {
@@ -68,6 +91,44 @@ const VoterList = ({ showVotes = false }: VoterListProps) => {
   const [voters, setVoters] = useState<Voter[]>(mockVoters);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Update voters based on blockchain data
+    const updateVotersFromBlockchain = () => {
+      const chain = blockchain.getChain();
+      const votedIds = new Set<string>();
+      
+      // Get all votes from blockchain
+      chain.forEach(block => {
+        if (block.vote.voterId !== "genesis") {
+          votedIds.add(block.vote.voterId);
+        }
+      });
+
+      // Update voters list with blockchain data
+      setVoters(prev => prev.map(voter => {
+        if (votedIds.has(voter.id)) {
+          const voterBlocks = chain.filter(block => block.vote.voterId === voter.id);
+          const lastVote = voterBlocks[voterBlocks.length - 1];
+          return {
+            ...voter,
+            status: "voted",
+            lastActivity: new Date(lastVote.timestamp).toISOString().split('T')[0],
+            vote: lastVote.vote.candidateId
+          };
+        }
+        return voter;
+      }));
+    };
+
+    // Initial update
+    updateVotersFromBlockchain();
+
+    // Set up interval for real-time updates
+    const interval = setInterval(updateVotersFromBlockchain, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -240,7 +301,7 @@ const VoterList = ({ showVotes = false }: VoterListProps) => {
                 <TableCell>{voter.ipAddress}</TableCell>
                 {showVotes && (
                   <TableCell>
-                    {voter.vote ? `Candidate ${voter.vote}` : "Not voted"}
+                    {voter.vote ? voter.vote.split('-')[1] : "Not voted"}
                   </TableCell>
                 )}
                 <TableCell>
