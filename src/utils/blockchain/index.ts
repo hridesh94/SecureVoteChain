@@ -1,7 +1,7 @@
 import { VoteVerifier, VerifiedVote } from '../voteVerification';
 import { Block } from './types';
 import { calculateHash, mineBlock } from './blockUtils';
-import { loadChainFromStorage, saveChainToStorage } from './storage';
+import { loadChainFromStorage, saveChainToStorage, clearBlockchainStorage } from './storage';
 
 export class VotingBlockchain {
   private chain: Block[] = [];
@@ -186,7 +186,8 @@ export class VotingBlockchain {
     this.chain = this.chain.slice(0, 1);
     this.votedVoters.clear();
     this.isVotingEnded = false;
-    saveChainToStorage(this.chain);
+    clearBlockchainStorage(); // Clear the localStorage
+    saveChainToStorage(this.chain); // Save only the genesis block
   }
 
   public static getInstance(): VotingBlockchain {

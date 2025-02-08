@@ -18,3 +18,12 @@ export const saveChainToStorage = (chain: Block[]): void => {
     console.error('Error saving blockchain:', error);
   }
 };
+
+export const clearBlockchainStorage = (): void => {
+  try {
+    localStorage.removeItem('blockchain');
+  } catch (error) {
+    console.error('Error clearing blockchain:', error);
+  }
+};
+

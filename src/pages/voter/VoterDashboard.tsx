@@ -24,6 +24,15 @@ const initialVoteState: VoteState = {
   federal: null,
 };
 
+// Test voter IDs for demo purposes
+const testVoterIds = [
+  "V1234567890",
+  "V9876543210",
+  "V5555555555",
+  "V1111111111",
+  "V9999999999"
+];
+
 const VoterDashboard = () => {
   const [selectedPollingStation, setSelectedPollingStation] = useState<string | null>(null);
   const [votes, setVotes] = useState<VoteState>(initialVoteState);
@@ -31,7 +40,7 @@ const VoterDashboard = () => {
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [currentLevel, setCurrentLevel] = useState<VoteLevel>("local");
   const [showInstructions, setShowInstructions] = useState(true);
-  const [voterId, setVoterId] = useState<string>(`V${Date.now()}`);
+  const [voterId, setVoterId] = useState<string>(testVoterIds[0]);
   const { toast } = useToast();
 
   const handlePollingStationSelect = (stationId: string) => {
@@ -87,6 +96,7 @@ const VoterDashboard = () => {
         title: "Error",
         description: "You have already voted. धन्यवाद! (Thank you!) ",
         variant: "destructive",
+        className: "bg-white border-2 border-blue-500 text-blue-900 font-medium shadow-xl",
       });
       console.error("Voting error:", error);
     }
@@ -122,10 +132,12 @@ const VoterDashboard = () => {
     setVotes(initialVoteState);
     setSelectedPollingStation(null);
     setCurrentLevel("local");
-    setVoterId(`V${Date.now()}`); // Generate a new voter ID when resetting
+    // Get a random test voter ID for the next demo
+    const randomIndex = Math.floor(Math.random() * testVoterIds.length);
+    setVoterId(testVoterIds[randomIndex]);
     toast({
       title: "Demo Reset",
-      description: "Voting state has been reset for demo purposes.",
+      description: `Voting state has been reset for demo purposes. New Voter ID: ${testVoterIds[randomIndex]}`,
       className: "bg-white border-2 border-blue-500 text-blue-900 font-medium shadow-xl",
     });
   };
@@ -167,14 +179,17 @@ const VoterDashboard = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Link>
-          <Button
-            onClick={handleResetDemo}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Reset Demo
-          </Button>
+          <div className="flex items-center gap-4">
+            <p className="text-sm font-medium text-gray-600">Current Voter ID: {voterId}</p>
+            <Button
+              onClick={handleResetDemo}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Reset Demo
+            </Button>
+          </div>
         </div>
 
         <motion.div
