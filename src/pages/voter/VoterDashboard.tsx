@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { VotingBlockchain } from "@/utils/blockchain";
 
-// Import the shared blockchain instance
-const blockchain = new VotingBlockchain();
+// Use the singleton instance to ensure shared state
+const blockchain = VotingBlockchain.getInstance();
 
 interface Candidate {
   id: string;
@@ -17,9 +17,10 @@ interface Candidate {
   symbol: string;
 }
 
+// Updated candidate IDs to match admin panel
 const mockCandidates: Candidate[] = [
   {
-    id: "C001",  // Updated to match admin panel candidate IDs
+    id: "C001",
     name: "John Smith",
     party: "Progressive Party",
     symbol: "🌟",
@@ -53,15 +54,21 @@ const VoterDashboard = () => {
       return;
     }
 
+    if (blockchain.isVotingComplete()) {
+      toast({
+        title: "Voting Ended",
+        description: "The voting period has ended.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // Generate a unique voter ID (in a real app, this would come from authentication)
       const voterId = `V${Date.now()}`;
       
       // Add the vote to the blockchain
       blockchain.addBlock(selectedCandidate, voterId);
-
-      // Log the vote for verification
-      console.log("Vote recorded in blockchain:", blockchain.getChain());
 
       // Update UI state
       setHasVoted(true);
@@ -73,6 +80,11 @@ const VoterDashboard = () => {
 
       // Reset selection after successful vote
       setSelectedCandidate(null);
+      
+      console.log("Vote recorded:", {
+        candidateId: selectedCandidate,
+        chain: blockchain.getChain()
+      });
     } catch (error) {
       toast({
         title: "Error",
@@ -170,4 +182,3 @@ const VoterDashboard = () => {
 };
 
 export default VoterDashboard;
-
