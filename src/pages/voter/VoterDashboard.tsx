@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, User } from "lucide-react";
+import { ArrowLeft, User, FileText, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +11,7 @@ import VoteSuccess from "./components/VoteSuccess";
 import ProgressTracker from "./components/ProgressTracker";
 import ConstituencySelector from "./components/ConstituencySelector";
 import CandidateList from "./components/CandidateList";
+import VotingInstructions from "./components/VotingInstructions";
 
 const blockchain = VotingBlockchain.getInstance();
 
@@ -29,6 +30,7 @@ const VoterDashboard = () => {
   const [hasVoted, setHasVoted] = useState(false);
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [currentLevel, setCurrentLevel] = useState<"local" | "provincial" | "federal">("local");
+  const [showInstructions, setShowInstructions] = useState(true);
   const { toast } = useToast();
 
   const handlePollingStationSelect = (stationId: string) => {
@@ -138,14 +140,36 @@ const VoterDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-card backdrop-blur-md rounded-xl p-6 sm:p-8 border border-white/20 shadow-xl"
+          className="bg-white backdrop-blur-md rounded-xl p-6 sm:p-8 border border-primary/10 shadow-xl"
         >
-          <div className="flex items-center mb-8">
-            <div className="p-3 rounded-full bg-primary/5">
-              <User className="w-6 h-6 text-primary" />
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center">
+              <div className="p-3 rounded-full bg-primary/5">
+                <User className="w-6 h-6 text-primary" />
+              </div>
+              <h1 className="text-2xl font-semibold ml-4">मतदान डास्बोर्ड (Voter Dashboard)</h1>
             </div>
-            <h1 className="text-2xl font-semibold ml-4">मतदान डास्बोर्ड (Voter Dashboard)</h1>
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2"
+              onClick={() => setShowInstructions(!showInstructions)}
+            >
+              <HelpCircle className="w-4 h-4" />
+              {showInstructions ? "Hide" : "Show"} Instructions
+            </Button>
           </div>
+
+          {showInstructions && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mb-8"
+            >
+              <VotingInstructions currentLevel={currentLevel} />
+            </motion.div>
+          )}
 
           {selectedPollingStation && (
             <div className="mb-8">
@@ -179,7 +203,7 @@ const VoterDashboard = () => {
 
               <Button
                 onClick={handleVote}
-                className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg font-medium rounded-lg shadow-lg transition-all duration-200"
+                className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg font-medium rounded-lg shadow-lg transition-all duration-200 disabled:opacity-50"
                 disabled={!votes.local || !votes.provincial || !votes.federal}
               >
                 Submit All Votes (सबै मतहरू पेश गर्नुहोस्)
@@ -193,3 +217,4 @@ const VoterDashboard = () => {
 };
 
 export default VoterDashboard;
+

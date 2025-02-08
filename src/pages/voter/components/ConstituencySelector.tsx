@@ -37,10 +37,10 @@ const ConstituencySelector = ({
         onValueChange={onPollingStationSelect}
         disabled={selectedPollingStation !== null}
       >
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-full bg-white">
           <SelectValue placeholder="Select your polling station" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-white border border-primary/10">
           {mockPollingStations.map((station) => (
             <SelectItem 
               key={station.id} 
@@ -53,15 +53,15 @@ const ConstituencySelector = ({
         </SelectContent>
       </Select>
       {selectedStation && (
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 space-y-2 bg-white/50 p-4 rounded-lg">
           <div className="text-sm text-primary/70">
-            Your local constituency: {selectedStation.constituencies.local.name}
+            <span className="font-medium">Local constituency:</span> {selectedStation.constituencies.local.name}
           </div>
           <div className="text-sm text-primary/70">
-            Your provincial constituency: {selectedStation.constituencies.provincial.name}
+            <span className="font-medium">Provincial constituency:</span> {selectedStation.constituencies.provincial.name}
           </div>
           <div className="text-sm text-primary/70">
-            Your federal constituency: {selectedStation.constituencies.federal.name}
+            <span className="font-medium">Federal constituency:</span> {selectedStation.constituencies.federal.name}
           </div>
         </div>
       )}
@@ -70,3 +70,4 @@ const ConstituencySelector = ({
 };
 
 export default ConstituencySelector;
+
