@@ -5,15 +5,17 @@ export const mockConstituencies = {
   federal: Array.from({ length: 165 }, (_, i) => ({
     id: `F${(i + 1).toString().padStart(3, '0')}`,
     name: `Federal Constituency ${i + 1}`,
+    pollingStation: `Polling Station ${Math.floor(i / 10) + 1}`
   })),
   provincial: Array.from({ length: 330 }, (_, i) => ({
     id: `P${(i + 1).toString().padStart(3, '0')}`,
     name: `Provincial Constituency ${i + 1}`,
+    pollingStation: `Polling Station ${Math.floor(i / 15) + 1}`
   })),
   local: [
-    { id: "L001", name: "Kathmandu Metropolitan City" },
-    { id: "L002", name: "Lalitpur Metropolitan City" },
-    { id: "L003", name: "Pokhara Metropolitan City" },
+    { id: "L001", name: "Kathmandu Metropolitan City", pollingStation: "Kathmandu Central" },
+    { id: "L002", name: "Lalitpur Metropolitan City", pollingStation: "Lalitpur Central" },
+    { id: "L003", name: "Pokhara Metropolitan City", pollingStation: "Pokhara Central" },
     // Add more as needed
   ]
 };
