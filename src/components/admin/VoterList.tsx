@@ -1,17 +1,10 @@
-
 import { useState, useEffect } from "react";
-import { Search, Download, UserCheck, UserX, Filter } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { VotingBlockchain } from "@/utils/blockchain";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import VoterSearchBar from "./voter-management/VoterSearchBar";
+import VoterStatusFilter from "./voter-management/VoterStatusFilter";
+import VoterTable from "./voter-management/VoterTable";
+import ExportButton from "./voter-management/ExportButton";
 
 const blockchain = VotingBlockchain.getInstance();
 
@@ -93,19 +86,16 @@ const VoterList = ({ showVotes = false }: VoterListProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Update voters based on blockchain data
     const updateVotersFromBlockchain = () => {
       const chain = blockchain.getChain();
       const votedIds = new Set<string>();
       
-      // Get all votes from blockchain
       chain.forEach(block => {
         if (block.vote.voterId !== "genesis") {
           votedIds.add(block.vote.voterId);
         }
       });
 
-      // Update voters list with blockchain data
       setVoters(prev => prev.map(voter => {
         if (votedIds.has(voter.id)) {
           const voterBlocks = chain.filter(block => block.vote.voterId === voter.id);
@@ -121,12 +111,8 @@ const VoterList = ({ showVotes = false }: VoterListProps) => {
       }));
     };
 
-    // Initial update
     updateVotersFromBlockchain();
-
-    // Set up interval for real-time updates
     const interval = setInterval(updateVotersFromBlockchain, 5000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -222,106 +208,17 @@ const VoterList = ({ showVotes = false }: VoterListProps) => {
     <div className="space-y-4">
       <div className="flex justify-between items-center gap-4">
         <div className="flex items-center gap-4">
-          <div className="relative w-64">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search voters..."
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4 mr-2" />
-                Filter Status
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleStatusFilter("all")}>
-                All
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusFilter("registered")}>
-                Registered
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusFilter("voted")}>
-                Voted
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusFilter("blocked")}>
-                Blocked
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <VoterSearchBar searchTerm={searchTerm} onSearch={handleSearch} />
+          <VoterStatusFilter onStatusFilter={handleStatusFilter} />
         </div>
-        <Button variant="outline" onClick={handleExport}>
-          <Download className="w-4 h-4 mr-2" />
-          Export List
-        </Button>
+        <ExportButton onExport={handleExport} />
       </div>
 
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Registration Date</TableHead>
-              <TableHead>Last Activity</TableHead>
-              <TableHead>Login Attempts</TableHead>
-              <TableHead>IP Address</TableHead>
-              {showVotes && <TableHead>Vote</TableHead>}
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {voters.map((voter) => (
-              <TableRow key={voter.id}>
-                <TableCell>{voter.id}</TableCell>
-                <TableCell>{voter.name}</TableCell>
-                <TableCell>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      voter.status === "voted"
-                        ? "bg-green-100 text-green-800"
-                        : voter.status === "blocked"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    {voter.status}
-                  </span>
-                </TableCell>
-                <TableCell>{voter.location}</TableCell>
-                <TableCell>{voter.registrationDate}</TableCell>
-                <TableCell>{voter.lastActivity}</TableCell>
-                <TableCell>{voter.loginAttempts || 0}</TableCell>
-                <TableCell>{voter.ipAddress}</TableCell>
-                {showVotes && (
-                  <TableCell>
-                    {voter.vote ? voter.vote.split('-')[1] : "Not voted"}
-                  </TableCell>
-                )}
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleToggleStatus(voter.id)}
-                  >
-                    {voter.status === "blocked" ? (
-                      <UserCheck className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <UserX className="w-4 h-4 text-red-500" />
-                    )}
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <VoterTable 
+        voters={voters} 
+        showVotes={showVotes} 
+        onToggleStatus={handleToggleStatus} 
+      />
     </div>
   );
 };
