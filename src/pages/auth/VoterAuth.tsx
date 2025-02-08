@@ -144,7 +144,7 @@ const VoterAuth = () => {
                     render={({ slots }) => (
                       <InputOTPGroup className="gap-2">
                         {slots.map((slot, index) => (
-                          <InputOTPSlot key={index} {...slot} index={index} />
+                          <InputOTPSlot key={index} {...slot} />
                         ))}
                       </InputOTPGroup>
                     )}
