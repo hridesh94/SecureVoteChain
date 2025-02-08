@@ -6,8 +6,10 @@ interface DashboardStatsProps {
   stats: {
     totalVoters: number;
     votesCast: number;
+    votingProgress: number;
     activeVoters: number;
     averageVoteTime: string;
+    remainingVoters: number;
   };
 }
 
@@ -27,14 +29,14 @@ const DashboardStats = ({ stats }: DashboardStatsProps) => {
         delay={0.2}
       />
       <StatCard
-        title="Active Voters"
-        value={stats.activeVoters}
+        title="Voting Progress"
+        value={`${stats.votingProgress.toFixed(1)}%`}
         icon={UserCheck}
         delay={0.3}
       />
       <StatCard
-        title="Avg. Vote Time"
-        value={stats.averageVoteTime}
+        title="Remaining Voters"
+        value={stats.remainingVoters}
         icon={Clock}
         delay={0.4}
       />

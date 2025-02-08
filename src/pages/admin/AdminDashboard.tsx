@@ -1,10 +1,10 @@
 
 import DashboardWrapper from "@/components/admin/dashboard/DashboardWrapper";
 import DashboardHeader from "@/components/admin/dashboard/DashboardHeader";
+import DashboardStats from "@/components/admin/dashboard/DashboardStats";
 import DashboardContent from "@/components/admin/dashboard/DashboardContent";
-import VoterStats from "@/components/admin/VoterStats";
-import VoteAudit from "@/components/admin/VoteAudit";
-import VotingProgress from "@/components/admin/VotingProgress";
+import VotingMetrics from "@/components/admin/dashboard/VotingMetrics";
+import DashboardLayout from "@/components/admin/dashboard/DashboardLayout";
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";
 
 const votingData = [
@@ -31,44 +31,34 @@ const AdminDashboard = () => {
 
   return (
     <DashboardWrapper>
-      <DashboardHeader
-        isVotingActive={isVotingActive}
-        showResults={showResults}
-        onRefresh={handleRefreshData}
-        onExport={handleExportData}
-        onBlock={handleBlockVoter}
-        onToggleResults={handleToggleResults}
-        onVotingToggle={handleVotingToggle}
-      />
-
-      <VoterStats
-        totalRegistered={stats.totalVoters}
-        activeVoters={stats.activeVoters}
-        blockedVoters={stats.blockedVoters}
-        averageVoteTime={stats.averageVoteTime}
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <VotingProgress
-          votingProgress={stats.votingProgress}
-          remainingVoters={stats.remainingVoters}
+      <DashboardLayout>
+        <DashboardHeader
+          isVotingActive={isVotingActive}
+          showResults={showResults}
+          onRefresh={handleRefreshData}
+          onExport={handleExportData}
+          onBlock={handleBlockVoter}
+          onToggleResults={handleToggleResults}
+          onVotingToggle={handleVotingToggle}
         />
-        <VoteAudit />
-      </div>
 
-      <DashboardContent
-        isVotingActive={isVotingActive}
-        showResults={showResults}
-        votingResults={votingResults}
-        stats={{
-          votingProgress: stats.votingProgress,
-          remainingVoters: stats.remainingVoters,
-          activeVoters: stats.activeVoters,
-          averageVoteTime: stats.averageVoteTime,
-          invalidAttempts: stats.invalidAttempts
-        }}
-        votingData={votingData}
-      />
+        <DashboardStats stats={stats} />
+
+        <VotingMetrics
+          hourlyVoteRate={stats.hourlyVoteRate}
+          lastVoteTimestamp={stats.lastVoteTimestamp}
+          invalidAttempts={stats.invalidAttempts}
+          activeVoters={stats.activeVoters}
+        />
+
+        <DashboardContent
+          isVotingActive={isVotingActive}
+          showResults={showResults}
+          votingResults={votingResults}
+          stats={stats}
+          votingData={votingData}
+        />
+      </DashboardLayout>
     </DashboardWrapper>
   );
 };
