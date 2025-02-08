@@ -64,26 +64,17 @@ const InputOTPSlot = React.forwardRef<
       )}
       {...props}
     >
-      {/* Display entered digit or placeholder */}
-      <div 
-        className={cn(
-          "absolute inset-0 w-full h-full flex items-center justify-center text-2xl font-semibold pointer-events-none",
-          slot?.char ? "text-primary" : "text-muted-foreground/40"
-        )}
-      >
-        {slot?.char || "0"}
-      </div>
-
-      {/* Actual input field */}
+      {/* Hidden input for actual value handling */}
       <input
         type="text"
         inputMode="numeric"
         pattern="\d*"
         maxLength={1}
-        className="absolute inset-0 w-full h-full text-center text-2xl font-semibold opacity-0 focus:opacity-100 focus:outline-none cursor-pointer"
+        className="absolute inset-0 w-full h-full text-center text-2xl font-semibold bg-transparent border-none focus:outline-none focus:ring-0"
+        style={{ caretColor: 'transparent' }}
         autoComplete="one-time-code"
         disabled={disabled}
-        onFocus={(e) => e.target.select()}
+        value={slot?.char || ''}
         onChange={(e) => {
           const value = e.target.value;
           if (/^\d*$/.test(value)) {
@@ -112,7 +103,6 @@ const InputOTPSlot = React.forwardRef<
             
             if (currentIndex > 0) {
               inputs[currentIndex - 1].focus();
-              inputs[currentIndex - 1].select();
             }
           }
         }}
@@ -125,9 +115,20 @@ const InputOTPSlot = React.forwardRef<
           }
         }}
       />
+
+      {/* Visual display of the number or placeholder */}
+      <div
+        className={cn(
+          "pointer-events-none select-none text-2xl font-semibold",
+          slot?.char ? "text-foreground" : "text-muted-foreground/40"
+        )}
+      >
+        {slot?.char || "0"}
+      </div>
+
       {slot?.hasFakeCaret && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-4 w-px animate-caret-blink bg-primary duration-1000" />
+          <div className="h-4 w-px animate-caret-blink bg-foreground duration-1000" />
         </div>
       )}
     </div>
@@ -146,3 +147,4 @@ const InputOTPSeparator = React.forwardRef<
 InputOTPSeparator.displayName = "InputOTPSeparator"
 
 export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator }
+
