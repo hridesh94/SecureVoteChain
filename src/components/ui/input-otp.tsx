@@ -42,20 +42,39 @@ const InputOTPSlot = React.forwardRef<React.ElementRef<"div">, InputOTPSlotProps
     const slots = inputOTPContext?.slots || []
     const slot = slots[index]
     const inputRef = React.useRef<HTMLInputElement>(null)
-
+    
     React.useEffect(() => {
       if (slot?.isActive && inputRef.current) {
         inputRef.current.focus()
       }
     }, [slot?.isActive])
 
+    const handleInputChange = (value: string) => {
+      const form = inputRef.current?.form
+      if (!form) return
+
+      const inputs = Array.from(form.elements).filter(
+        (el): el is HTMLInputElement => el instanceof HTMLInputElement
+      )
+      const currentIndex = inputs.indexOf(inputRef.current!)
+      
+      if (value && /^\d$/.test(value)) {
+        if (currentIndex < inputs.length - 1) {
+          inputs[currentIndex + 1].focus()
+        }
+        // Update the value in the OTP context
+        const newValue = slots.map((s, i) => (i === index ? value : s?.char || "")).join("")
+        inputOTPContext?.setValue?.(newValue)
+      }
+    }
+
     const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
       e.preventDefault()
       const pastedText = e.clipboardData.getData('text/plain')
       const numericOnly = pastedText.replace(/\D/g, '')
       
-      if (numericOnly && inputOTPContext?.onChange) {
-        inputOTPContext.onChange(numericOnly)
+      if (numericOnly && inputOTPContext?.setValue) {
+        inputOTPContext.setValue(numericOnly)
       }
     }
 
@@ -84,22 +103,7 @@ const InputOTPSlot = React.forwardRef<React.ElementRef<"div">, InputOTPSlotProps
             disabled && "cursor-not-allowed"
           )}
           value={slot?.char || ''}
-          onChange={(e) => {
-            const value = e.target.value
-            if (/^\d*$/.test(value)) {
-              const form = e.target.form
-              if (form) {
-                const inputs = Array.from(form.elements).filter(
-                  (el): el is HTMLInputElement => el instanceof HTMLInputElement
-                )
-                const currentIndex = inputs.indexOf(e.target)
-                
-                if (value && currentIndex < inputs.length - 1) {
-                  inputs[currentIndex + 1].focus()
-                }
-              }
-            }
-          }}
+          onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Backspace") {
               const form = e.currentTarget.form
@@ -111,7 +115,8 @@ const InputOTPSlot = React.forwardRef<React.ElementRef<"div">, InputOTPSlotProps
                 
                 if (!e.currentTarget.value && currentIndex > 0) {
                   inputs[currentIndex - 1].focus()
-                  inputs[currentIndex - 1].value = ''
+                  const newValue = slots.map((s, i) => (i === currentIndex - 1 ? "" : s?.char || "")).join("")
+                  inputOTPContext?.setValue?.(newValue)
                 }
               }
             }
