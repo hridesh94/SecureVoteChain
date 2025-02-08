@@ -74,6 +74,7 @@ const VoterDashboard = () => {
           description: "You have already cast your vote in this election. Each voter is allowed only one vote.",
           variant: "destructive",
           duration: 5000, // Show for 5 seconds
+          className: "bg-red-100 border-2 border-red-500 text-red-900 font-medium shadow-lg",
         });
         return;
       }
