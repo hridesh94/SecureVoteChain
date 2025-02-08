@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
@@ -5,7 +6,6 @@ import {
   BarChart, 
   Lock, 
   Users, 
-  AlertCircle, 
   UserCheck,
   Clock,
   RefreshCw,
@@ -16,31 +16,11 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { VotingBlockchain } from "@/utils/blockchain";
-import {
-  ChartContainer,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import StatCard from "@/components/admin/StatCard";
+import VotingChart from "@/components/admin/VotingChart";
+import SecurityOverview from "@/components/admin/SecurityOverview";
 
 const blockchain = new VotingBlockchain();
-
-const mockStats = {
-  totalVoters: 1500,
-  votesCast: 0,
-  remainingVoters: 1500,
-  votingProgress: 0,
-  activeVoters: 42,
-  averageVoteTime: "2.5 min",
-  invalidAttempts: 23,
-};
 
 const votingData = [
   { time: "9 AM", votes: 150, active: 25 },
@@ -208,57 +188,30 @@ const AdminDashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="p-6 rounded-lg border border-white/20"
-            >
-              <div className="flex items-center mb-4">
-                <Users className="w-5 h-5 text-primary mr-2" />
-                <h3 className="font-semibold">Total Voters</h3>
-              </div>
-              <p className="text-3xl font-semibold">{mockStats.totalVoters}</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="p-6 rounded-lg border border-white/20"
-            >
-              <div className="flex items-center mb-4">
-                <BarChart className="w-5 h-5 text-primary mr-2" />
-                <h3 className="font-semibold">Votes Cast</h3>
-              </div>
-              <p className="text-3xl font-semibold">{mockStats.votesCast}</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="p-6 rounded-lg border border-white/20"
-            >
-              <div className="flex items-center mb-4">
-                <UserCheck className="w-5 h-5 text-primary mr-2" />
-                <h3 className="font-semibold">Active Voters</h3>
-              </div>
-              <p className="text-3xl font-semibold">{mockStats.activeVoters}</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="p-6 rounded-lg border border-white/20"
-            >
-              <div className="flex items-center mb-4">
-                <Clock className="w-5 h-5 text-primary mr-2" />
-                <h3 className="font-semibold">Avg. Vote Time</h3>
-              </div>
-              <p className="text-3xl font-semibold">{mockStats.averageVoteTime}</p>
-            </motion.div>
+            <StatCard
+              title="Total Voters"
+              value={stats.totalVoters}
+              icon={Users}
+              delay={0.1}
+            />
+            <StatCard
+              title="Votes Cast"
+              value={stats.votesCast}
+              icon={BarChart}
+              delay={0.2}
+            />
+            <StatCard
+              title="Active Voters"
+              value={stats.activeVoters}
+              icon={UserCheck}
+              delay={0.3}
+            />
+            <StatCard
+              title="Avg. Vote Time"
+              value={stats.averageVoteTime}
+              icon={Clock}
+              delay={0.4}
+            />
           </div>
 
           <div className="grid gap-6 mb-8">
@@ -267,99 +220,18 @@ const AdminDashboard = () => {
               <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
                 <div
                   className="bg-primary h-2.5 rounded-full transition-all duration-500"
-                  style={{ width: `${mockStats.votingProgress}%` }}
+                  style={{ width: `${stats.votingProgress}%` }}
                 ></div>
               </div>
               <div className="flex justify-between text-sm text-primary/70">
-                <p>{mockStats.votingProgress}% of total votes cast</p>
-                <p>{mockStats.remainingVoters} votes remaining</p>
+                <p>{stats.votingProgress.toFixed(1)}% of total votes cast</p>
+                <p>{stats.remainingVoters} votes remaining</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="p-6 rounded-lg border border-white/20">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-semibold">Voting Trends</h3>
-                  <div className="flex items-center text-sm text-primary/70">
-                    <AlertCircle className="w-4 h-4 mr-2" />
-                    Updated every hour
-                  </div>
-                </div>
-                <div className="h-[300px]">
-                  <ChartContainer
-                    className="w-full h-full"
-                    config={{
-                      votes: {
-                        theme: {
-                          light: "hsl(var(--primary))",
-                          dark: "hsl(var(--primary))",
-                        },
-                      },
-                    }}
-                  >
-                    <AreaChart data={votingData}>
-                      <defs>
-                        <linearGradient id="colorVotes" x1="0" y1="0" x2="0" y2="1">
-                          <stop
-                            offset="5%"
-                            stopColor="hsl(var(--primary))"
-                            stopOpacity={0.3}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="hsl(var(--primary))"
-                            stopOpacity={0}
-                          />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                      <XAxis dataKey="time" />
-                      <YAxis />
-                      <Tooltip content={<ChartTooltipContent />} />
-                      <Area
-                        type="monotone"
-                        dataKey="votes"
-                        stroke="hsl(var(--primary))"
-                        fillOpacity={1}
-                        fill="url(#colorVotes)"
-                      />
-                    </AreaChart>
-                  </ChartContainer>
-                </div>
-              </div>
-
-              <div className="p-6 rounded-lg border border-white/20">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-semibold">Security Overview</h3>
-                  <div className="flex items-center text-sm text-primary/70">
-                    <AlertCircle className="w-4 h-4 mr-2" />
-                    Real-time monitoring
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-4 bg-secondary/50 rounded-lg">
-                    <div className="flex items-center">
-                      <UserCheck className="w-5 h-5 text-green-500 mr-2" />
-                      <span>Active Sessions</span>
-                    </div>
-                    <span className="font-semibold">{mockStats.activeVoters}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-secondary/50 rounded-lg">
-                    <div className="flex items-center">
-                      <Ban className="w-5 h-5 text-red-500 mr-2" />
-                      <span>Invalid Attempts</span>
-                    </div>
-                    <span className="font-semibold">{mockStats.invalidAttempts}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-secondary/50 rounded-lg">
-                    <div className="flex items-center">
-                      <Clock className="w-5 h-5 text-blue-500 mr-2" />
-                      <span>Average Vote Time</span>
-                    </div>
-                    <span className="font-semibold">{mockStats.averageVoteTime}</span>
-                  </div>
-                </div>
-              </div>
+              <VotingChart data={votingData} />
+              <SecurityOverview stats={stats} />
             </div>
           </div>
         </motion.div>
