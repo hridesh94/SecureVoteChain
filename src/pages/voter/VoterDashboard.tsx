@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, User, FileText, HelpCircle, RefreshCw } from "lucide-react";
+import { ArrowLeft, User, FileText, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -30,7 +31,7 @@ const VoterDashboard = () => {
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [currentLevel, setCurrentLevel] = useState<VoteLevel>("local");
   const [showInstructions, setShowInstructions] = useState(true);
-  const [voterId, setVoterId] = useState<string>(`V${Date.now()}`);
+  const [voterId] = useState<string>(`V${Date.now()}`);
   const { toast } = useToast();
 
   const handlePollingStationSelect = (stationId: string) => {
@@ -115,44 +116,8 @@ const VoterDashboard = () => {
     }
   };
 
-  const handleResetDemo = () => {
-    blockchain.setDemoMode(true);
-    setHasVoted(false);
-    setVotes(initialVoteState);
-    setSelectedPollingStation(null);
-    setCurrentLevel("local");
-    setVoterId(`V${Date.now()}`); // Generate a new voter ID when resetting
-    toast({
-      title: "Demo Reset",
-      description: "Voting state has been reset for demo purposes.",
-      className: "bg-white border-2 border-blue-500 text-blue-900 font-medium shadow-xl",
-    });
-  };
-
-  const selectedStation = selectedPollingStation 
-    ? mockPollingStations.find(ps => ps.id === selectedPollingStation)
-    : null;
-
-  const filteredCandidates = selectedStation
-    ? mockCandidates.filter(candidate => 
-        candidate.level === currentLevel && 
-        candidate.id.startsWith(selectedStation.constituencies[currentLevel].id)
-      )
-    : [];
-
   if (hasVoted) {
-    return (
-      <div className="relative">
-        <VoteSuccess />
-        <Button
-          onClick={handleResetDemo}
-          className="absolute top-4 right-4 flex items-center gap-2 bg-blue-500 hover:bg-blue-600"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Reset Demo
-        </Button>
-      </div>
-    );
+    return <VoteSuccess />;
   }
 
   return (
@@ -166,14 +131,6 @@ const VoterDashboard = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Link>
-          <Button
-            onClick={handleResetDemo}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Reset Demo
-          </Button>
         </div>
 
         <motion.div
