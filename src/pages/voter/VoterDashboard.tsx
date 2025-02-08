@@ -1,24 +1,16 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, User, CheckCircle, Map } from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { VotingBlockchain } from "@/utils/blockchain";
-import { mockCandidates, mockConstituencies } from "./mockData";
-import CandidateCard from "./components/CandidateCard";
+import { mockCandidates } from "./mockData";
 import VoteSuccess from "./components/VoteSuccess";
-import { Candidate } from "./types";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import ProgressTracker from "./components/ProgressTracker";
+import ConstituencySelector from "./components/ConstituencySelector";
+import CandidateList from "./components/CandidateList";
 
 const blockchain = VotingBlockchain.getInstance();
 
@@ -32,6 +24,7 @@ const VoterDashboard = () => {
     provincial: null,
     federal: null,
   });
+  
   const [selectedConstituencies, setSelectedConstituencies] = useState<{
     local: string | null;
     provincial: string | null;
@@ -41,6 +34,7 @@ const VoterDashboard = () => {
     provincial: null,
     federal: null,
   });
+  
   const [hasVoted, setHasVoted] = useState(false);
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [currentLevel, setCurrentLevel] = useState<"local" | "provincial" | "federal">("local");
@@ -51,7 +45,6 @@ const VoterDashboard = () => {
       ...prev,
       [currentLevel]: value
     }));
-    // Reset vote for this level when constituency changes
     setVotes(prev => ({
       ...prev,
       [currentLevel]: null
@@ -134,21 +127,6 @@ const VoterDashboard = () => {
     return <VoteSuccess />;
   }
 
-  const getConstituenciesByPollingStation = () => {
-    const constituencies = mockConstituencies[currentLevel];
-    const grouped: { [key: string]: typeof constituencies } = {};
-    
-    constituencies.forEach(constituency => {
-      const pollingStation = constituency.pollingStation || "Other";
-      if (!grouped[pollingStation]) {
-        grouped[pollingStation] = [];
-      }
-      grouped[pollingStation].push(constituency);
-    });
-    
-    return grouped;
-  };
-
   return (
     <div className="min-h-screen w-full bg-secondary p-4">
       <div className="max-w-6xl mx-auto">
@@ -173,93 +151,26 @@ const VoterDashboard = () => {
             <h1 className="text-2xl font-semibold ml-4">मतदान डास्बोर्ड (Voter Dashboard)</h1>
           </div>
 
-          {/* Interactive Progress Tracker */}
-          <div className="flex items-center justify-center mb-6 p-4 bg-primary/5 rounded-lg">
-            <div className="flex items-center gap-6">
-              {[
-                { level: "local", label: "Local" },
-                { level: "provincial", label: "Provincial" },
-                { level: "federal", label: "Federal" }
-              ].map((item, index) => (
-                <>
-                  <div 
-                    key={item.level}
-                    className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => setCurrentLevel(item.level as "local" | "provincial" | "federal")}
-                  >
-                    <div 
-                      className={`p-2 rounded-full ${
-                        votes[item.level as keyof typeof votes] 
-                          ? 'bg-green-500' 
-                          : currentLevel === item.level 
-                            ? 'bg-primary'
-                            : 'bg-gray-300'
-                      }`}
-                    >
-                      <CheckCircle className="w-4 h-4 text-white" />
-                    </div>
-                    <span className={`ml-2 ${currentLevel === item.level ? 'font-semibold' : ''}`}>
-                      {item.label}
-                    </span>
-                  </div>
-                  {index < 2 && <span className="text-gray-400">→</span>}
-                </>
-              ))}
-            </div>
-          </div>
+          <ProgressTracker 
+            currentLevel={currentLevel}
+            votes={votes}
+            setCurrentLevel={setCurrentLevel}
+          />
 
-          {/* Improved Constituency Selection */}
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Map className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-semibold">Select Your Constituency</h2>
-            </div>
-            <Select
-              value={selectedConstituencies[currentLevel] || ''}
-              onValueChange={handleConstituencySelect}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={`Select your ${currentLevel} constituency`} />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {Object.entries(getConstituenciesByPollingStation()).map(([station, constituencies]) => (
-                  <SelectGroup key={station}>
-                    <SelectLabel className="px-2 py-1.5 text-sm font-semibold text-primary">
-                      {station}
-                    </SelectLabel>
-                    {constituencies.map((constituency) => (
-                      <SelectItem 
-                        key={constituency.id} 
-                        value={constituency.id}
-                        className="px-2 py-1.5 cursor-pointer hover:bg-primary/5"
-                      >
-                        {constituency.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <ConstituencySelector
+            currentLevel={currentLevel}
+            selectedConstituency={selectedConstituencies[currentLevel]}
+            onConstituencySelect={handleConstituencySelect}
+          />
 
-          {selectedConstituencies[currentLevel] ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {filteredCandidates.map((candidate) => (
-                <CandidateCard
-                  key={candidate.id}
-                  candidate={candidate}
-                  isSelected={votes[currentLevel] === candidate.id}
-                  showDetails={showDetails}
-                  onSelect={handleSelectCandidate}
-                  onToggleDetails={(id) => setShowDetails(showDetails === id ? null : id)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-primary/70">
-              Please select your constituency to view available candidates
-            </div>
-          )}
+          <CandidateList
+            candidates={filteredCandidates}
+            currentLevel={currentLevel}
+            votes={votes}
+            showDetails={showDetails}
+            onSelectCandidate={handleSelectCandidate}
+            onToggleDetails={(id) => setShowDetails(showDetails === id ? null : id)}
+          />
 
           <Button
             onClick={handleVote}
@@ -275,4 +186,3 @@ const VoterDashboard = () => {
 };
 
 export default VoterDashboard;
-
