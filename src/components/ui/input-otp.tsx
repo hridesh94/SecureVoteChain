@@ -29,10 +29,15 @@ const InputOTPGroup = React.forwardRef<
 ))
 InputOTPGroup.displayName = "InputOTPGroup"
 
+interface InputOTPSlotProps extends React.ComponentPropsWithoutRef<"div"> {
+  index: number;
+  disabled?: boolean;
+}
+
 const InputOTPSlot = React.forwardRef<
   React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div"> & { index: number }
->(({ index, className, ...props }, ref) => {
+  InputOTPSlotProps
+>(({ index, className, disabled, ...props }, ref) => {
   const inputOTPContext = React.useContext(OTPInputContext)
   const slots = inputOTPContext?.slots || []
   const slot = slots[index]
@@ -57,7 +62,7 @@ const InputOTPSlot = React.forwardRef<
         )}
         value={slot?.char || ""}
         readOnly
-        disabled={props.disabled}
+        disabled={disabled}
       />
       {slot?.hasFakeCaret && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
