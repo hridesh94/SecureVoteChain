@@ -147,15 +147,15 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-secondary p-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen w-full bg-secondary">
+      <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-card backdrop-blur-md rounded-lg p-8 border border-white/20"
+          className="bg-card backdrop-blur-md rounded-lg p-6 border border-white/20"
         >
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-8">
             <AdminHeader isVotingActive={isVotingActive} />
             <AdminActions
               isVotingActive={isVotingActive}
@@ -195,7 +195,7 @@ const AdminDashboard = () => {
             />
           </div>
 
-          <div className="grid gap-6 mb-8">
+          <div className="space-y-6">
             <VotingProgress
               votingProgress={stats.votingProgress}
               remainingVoters={stats.remainingVoters}
@@ -210,9 +210,11 @@ const AdminDashboard = () => {
               <SecurityOverview stats={stats} />
             </div>
 
-            <div className="p-6 rounded-lg border border-white/20">
-              <h3 className="font-semibold mb-4">Voter Management</h3>
-              <VoterList showVotes={!isVotingActive && showResults} />
+            <div className="bg-white rounded-lg border shadow-sm">
+              <div className="p-6">
+                <h3 className="font-semibold mb-4">Voter Management</h3>
+                <VoterList showVotes={!isVotingActive && showResults} />
+              </div>
             </div>
           </div>
         </motion.div>
