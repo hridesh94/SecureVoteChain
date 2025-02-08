@@ -15,18 +15,22 @@ export class VotingBlockchain {
   private difficulty: number = 4;
   private isVotingEnded: boolean = false;
   private static instance: VotingBlockchain;
-  private voteVerifier: VoteVerifier;
+  private _voteVerifier: VoteVerifier;
 
   constructor() {
     if (VotingBlockchain.instance) {
       return VotingBlockchain.instance;
     }
-    this.voteVerifier = VoteVerifier.getInstance();
+    this._voteVerifier = VoteVerifier.getInstance();
     this.loadChain();
     if (this.chain.length === 0) {
       this.createGenesisBlock();
     }
     VotingBlockchain.instance = this;
+  }
+
+  get voteVerifier(): VoteVerifier {
+    return this._voteVerifier;
   }
 
   private loadChain(): void {

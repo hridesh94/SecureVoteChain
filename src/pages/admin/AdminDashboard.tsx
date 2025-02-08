@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -7,6 +6,7 @@ import DashboardHeader from "@/components/admin/dashboard/DashboardHeader";
 import DashboardStats from "@/components/admin/dashboard/DashboardStats";
 import DashboardContent from "@/components/admin/dashboard/DashboardContent";
 import VoterStats from "@/components/admin/VoterStats";
+import VoteAudit from "@/components/admin/VoteAudit";
 
 const blockchain = VotingBlockchain.getInstance();
 
@@ -26,7 +26,6 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalVoters: 1500,
     votesCast: 0,
-    remainingVoters: 1500,
     votingProgress: 0,
     activeVoters: 42,
     averageVoteTime: "2.5 min",
@@ -183,7 +182,13 @@ const AdminDashboard = () => {
             averageVoteTime={stats.averageVoteTime}
           />
 
-          <DashboardStats stats={stats} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <VotingProgress
+              votingProgress={stats.votingProgress}
+              remainingVoters={stats.totalVoters - stats.votesCast}
+            />
+            <VoteAudit />
+          </div>
 
           <DashboardContent
             isVotingActive={isVotingActive}
