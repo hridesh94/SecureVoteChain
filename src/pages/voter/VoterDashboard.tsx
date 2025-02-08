@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, User, FileText, HelpCircle, RefreshCw } from "lucide-react";
@@ -92,13 +91,13 @@ const VoterDashboard = () => {
         chain: blockchain.getChain()
       });
     } catch (error) {
+      console.error("Voting error:", error);
       toast({
-        title: "Error",
-        description: "You have already voted. धन्यवाद! (Thank you!) ",
+        title: "Already Voted",
+        description: "This voter ID has already cast their vote. Please reset the demo to vote again.",
         variant: "destructive",
         className: "bg-white border-2 border-blue-500 text-blue-900 font-medium shadow-xl",
       });
-      console.error("Voting error:", error);
     }
   };
 
@@ -284,4 +283,3 @@ const VoterDashboard = () => {
 };
 
 export default VoterDashboard;
-

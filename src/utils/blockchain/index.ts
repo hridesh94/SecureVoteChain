@@ -1,3 +1,4 @@
+
 import { VoteVerifier, VerifiedVote } from '../voteVerification';
 import { Block } from './types';
 import { calculateHash, mineBlock } from './blockUtils';
@@ -25,6 +26,7 @@ export class VotingBlockchain {
   }
 
   private initializeVotedVoters(): void {
+    this.votedVoters.clear(); // Clear the set first
     this.chain.forEach(block => {
       if (block.vote.voterId !== "genesis") {
         this.votedVoters.add(block.vote.voterId);
@@ -184,10 +186,11 @@ export class VotingBlockchain {
   public resetVotingState(): void {
     // Clear all votes except genesis block
     this.chain = this.chain.slice(0, 1);
-    this.votedVoters.clear();
+    this.votedVoters.clear(); // Clear the voted voters set
     this.isVotingEnded = false;
     clearBlockchainStorage(); // Clear the localStorage
     saveChainToStorage(this.chain); // Save only the genesis block
+    this.initializeVotedVoters(); // Reinitialize voted voters from the chain
   }
 
   public static getInstance(): VotingBlockchain {
