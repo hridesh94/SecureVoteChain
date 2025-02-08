@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
   ChartContainer,
-  ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
@@ -16,6 +15,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
 } from "recharts";
 
@@ -190,9 +190,7 @@ const AdminDashboard = () => {
                     <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
                     <XAxis dataKey="time" />
                     <YAxis />
-                    <ChartTooltip>
-                      <ChartTooltipContent />
-                    </ChartTooltip>
+                    <Tooltip content={<ChartTooltipContent />} />
                     <Area
                       type="monotone"
                       dataKey="votes"
