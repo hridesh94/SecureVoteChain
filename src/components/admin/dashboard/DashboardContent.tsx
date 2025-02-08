@@ -1,4 +1,3 @@
-
 import VotingProgress from "@/components/admin/VotingProgress";
 import VotingResults from "@/components/admin/VotingResults";
 import VotingChart from "@/components/admin/VotingChart";
@@ -28,16 +27,16 @@ const DashboardContent = ({
   votingData,
 }: DashboardContentProps) => {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-8">
           <VotingProgress
             votingProgress={stats.votingProgress}
             remainingVoters={stats.remainingVoters}
           />
           <VotingChart data={votingData} />
         </div>
-        <div className="space-y-6">
+        <div className="space-y-8">
           <SecurityOverview stats={stats} />
           <div className="p-6 rounded-lg border border-white/20 backdrop-blur-sm">
             <h3 className="font-semibold mb-4 text-lg">Vote Audit System</h3>
