@@ -1,3 +1,4 @@
+
 import { VoteVerifier, VerifiedVote } from '../voteVerification';
 import { Block } from './types';
 import { calculateHash, mineBlock } from './blockUtils';
@@ -176,18 +177,16 @@ export class VotingBlockchain {
 
   public setVotingEnded(ended: boolean): void {
     this.isVotingEnded = ended;
+    if (!ended) {
+      // Reset the chain and voted voters when starting a new voting session
+      this.chain = [this.chain[0]]; // Keep only genesis block
+      this.votedVoters.clear();
+      saveChainToStorage(this.chain);
+    }
   }
 
   public isVotingComplete(): boolean {
     return this.isVotingEnded;
-  }
-
-  public resetVotingState(): void {
-    this.chain = this.chain.slice(0, 1);
-    this.votedVoters.clear();
-    this.isVotingEnded = false;
-    clearBlockchainStorage();
-    saveChainToStorage(this.chain);
   }
 
   public static getInstance(): VotingBlockchain {
