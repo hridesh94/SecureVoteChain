@@ -1,14 +1,22 @@
+
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, User, CheckCircle } from "lucide-react";
+import { ArrowLeft, User, CheckCircle, Map } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { VotingBlockchain } from "@/utils/blockchain";
-import { mockCandidates } from "./mockData";
+import { mockCandidates, mockConstituencies } from "./mockData";
 import CandidateCard from "./components/CandidateCard";
 import VoteSuccess from "./components/VoteSuccess";
 import { Candidate } from "./types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const blockchain = VotingBlockchain.getInstance();
 
@@ -22,10 +30,31 @@ const VoterDashboard = () => {
     provincial: null,
     federal: null,
   });
+  const [selectedConstituencies, setSelectedConstituencies] = useState<{
+    local: string | null;
+    provincial: string | null;
+    federal: string | null;
+  }>({
+    local: null,
+    provincial: null,
+    federal: null,
+  });
   const [hasVoted, setHasVoted] = useState(false);
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [currentLevel, setCurrentLevel] = useState<"local" | "provincial" | "federal">("local");
   const { toast } = useToast();
+
+  const handleConstituencySelect = (value: string) => {
+    setSelectedConstituencies(prev => ({
+      ...prev,
+      [currentLevel]: value
+    }));
+    // Reset vote for this level when constituency changes
+    setVotes(prev => ({
+      ...prev,
+      [currentLevel]: null
+    }));
+  };
 
   const handleVote = () => {
     if (!votes.local || !votes.provincial || !votes.federal) {
@@ -47,7 +76,6 @@ const VoterDashboard = () => {
     }
 
     try {
-      // Record votes for all levels
       const voterId = `V${Date.now()}`;
       Object.entries(votes).forEach(([level, candidateId]) => {
         if (candidateId) {
@@ -63,6 +91,7 @@ const VoterDashboard = () => {
       
       console.log("Votes recorded:", {
         votes,
+        constituencies: selectedConstituencies,
         chain: blockchain.getChain()
       });
     } catch (error) {
@@ -86,7 +115,6 @@ const VoterDashboard = () => {
       description: `Candidate selected for ${currentLevel} level. You can now proceed to the next level.`,
     });
 
-    // Automatically move to next level if available
     if (currentLevel === "local") {
       setCurrentLevel("provincial");
     } else if (currentLevel === "provincial") {
@@ -95,7 +123,9 @@ const VoterDashboard = () => {
   };
 
   const filteredCandidates = mockCandidates.filter(
-    candidate => candidate.level === currentLevel
+    candidate => 
+      candidate.level === currentLevel && 
+      candidate.id.startsWith(selectedConstituencies[currentLevel] || '')
   );
 
   if (hasVoted) {
@@ -161,18 +191,47 @@ const VoterDashboard = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {filteredCandidates.map((candidate) => (
-              <CandidateCard
-                key={candidate.id}
-                candidate={candidate}
-                isSelected={votes[currentLevel] === candidate.id}
-                showDetails={showDetails}
-                onSelect={handleSelectCandidate}
-                onToggleDetails={(id) => setShowDetails(showDetails === id ? null : id)}
-              />
-            ))}
+          {/* Constituency Selection */}
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Map className="w-5 h-5 text-primary" />
+              <h2 className="text-lg font-semibold">Select Your Constituency</h2>
+            </div>
+            <Select
+              value={selectedConstituencies[currentLevel] || ''}
+              onValueChange={handleConstituencySelect}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={`Select your ${currentLevel} constituency`} />
+              </SelectTrigger>
+              <SelectContent>
+                {mockConstituencies[currentLevel].map((constituency) => (
+                  <SelectItem key={constituency.id} value={constituency.id}>
+                    {constituency.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+
+          {selectedConstituencies[currentLevel] ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {filteredCandidates.map((candidate) => (
+                <CandidateCard
+                  key={candidate.id}
+                  candidate={candidate}
+                  isSelected={votes[currentLevel] === candidate.id}
+                  showDetails={showDetails}
+                  onSelect={handleSelectCandidate}
+                  onToggleDetails={(id) => setShowDetails(showDetails === id ? null : id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-primary/70">
+              Please select your constituency to view available candidates
+            </div>
+          )}
 
           <Button
             onClick={handleVote}
@@ -188,3 +247,4 @@ const VoterDashboard = () => {
 };
 
 export default VoterDashboard;
+
