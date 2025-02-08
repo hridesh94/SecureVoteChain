@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, User } from "lucide-react";
+import { ArrowLeft, User, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -15,17 +15,25 @@ import { Candidate } from "./types";
 const blockchain = VotingBlockchain.getInstance();
 
 const VoterDashboard = () => {
-  const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
+  const [votes, setVotes] = useState<{
+    local: string | null;
+    provincial: string | null;
+    federal: string | null;
+  }>({
+    local: null,
+    provincial: null,
+    federal: null,
+  });
   const [hasVoted, setHasVoted] = useState(false);
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [currentLevel, setCurrentLevel] = useState<"local" | "provincial" | "federal">("local");
   const { toast } = useToast();
 
   const handleVote = () => {
-    if (!selectedCandidate) {
+    if (!votes.local || !votes.provincial || !votes.federal) {
       toast({
-        title: "Error",
-        description: "Please select a candidate first.",
+        title: "Incomplete Votes",
+        description: "Please select a candidate for each level (Local, Provincial, and Federal) before submitting.",
         variant: "destructive",
       });
       return;
@@ -41,28 +49,50 @@ const VoterDashboard = () => {
     }
 
     try {
+      // Record votes for all levels
       const voterId = `V${Date.now()}`;
-      blockchain.addBlock(selectedCandidate, voterId);
-      setHasVoted(true);
+      Object.entries(votes).forEach(([level, candidateId]) => {
+        if (candidateId) {
+          blockchain.addBlock(candidateId, voterId);
+        }
+      });
       
+      setHasVoted(true);
       toast({
         title: "Vote Confirmation",
-        description: "Your vote has been securely recorded. धन्यवाद! (Thank you!)",
+        description: "Your votes have been securely recorded for all levels. धन्यवाद! (Thank you!)",
       });
-
-      setSelectedCandidate(null);
       
-      console.log("Vote recorded:", {
-        candidateId: selectedCandidate,
+      console.log("Votes recorded:", {
+        votes,
         chain: blockchain.getChain()
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "There was an error recording your vote. Please try again.",
+        description: "There was an error recording your votes. Please try again.",
         variant: "destructive",
       });
       console.error("Voting error:", error);
+    }
+  };
+
+  const handleSelectCandidate = (candidateId: string) => {
+    setVotes(prev => ({
+      ...prev,
+      [currentLevel]: candidateId
+    }));
+
+    toast({
+      title: "Selection Confirmed",
+      description: `Candidate selected for ${currentLevel} level. You can now proceed to the next level.`,
+    });
+
+    // Automatically move to next level if available
+    if (currentLevel === "local") {
+      setCurrentLevel("provincial");
+    } else if (currentLevel === "provincial") {
+      setCurrentLevel("federal");
     }
   };
 
@@ -98,6 +128,28 @@ const VoterDashboard = () => {
             <h1 className="text-2xl font-semibold ml-4">मतदान डास्बोर्ड (Voter Dashboard)</h1>
           </div>
 
+          {/* Progress Tracker */}
+          <div className="flex justify-between mb-6 p-4 bg-primary/5 rounded-lg">
+            <div className="flex items-center gap-2">
+              <div className={`p-2 rounded-full ${votes.local ? 'bg-green-500' : 'bg-gray-300'}`}>
+                <CheckCircle className="w-4 h-4 text-white" />
+              </div>
+              <span>Local Level</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`p-2 rounded-full ${votes.provincial ? 'bg-green-500' : 'bg-gray-300'}`}>
+                <CheckCircle className="w-4 h-4 text-white" />
+              </div>
+              <span>Provincial Level</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`p-2 rounded-full ${votes.federal ? 'bg-green-500' : 'bg-gray-300'}`}>
+                <CheckCircle className="w-4 h-4 text-white" />
+              </div>
+              <span>Federal Level</span>
+            </div>
+          </div>
+
           <Tabs value={currentLevel} className="mb-8">
             <TabsList className="w-full justify-start mb-6">
               <TabsTrigger 
@@ -129,9 +181,9 @@ const VoterDashboard = () => {
                   <CandidateCard
                     key={candidate.id}
                     candidate={candidate}
-                    isSelected={selectedCandidate === candidate.id}
+                    isSelected={votes[currentLevel] === candidate.id}
                     showDetails={showDetails}
-                    onSelect={setSelectedCandidate}
+                    onSelect={handleSelectCandidate}
                     onToggleDetails={(id) => setShowDetails(showDetails === id ? null : id)}
                   />
                 ))}
@@ -140,9 +192,9 @@ const VoterDashboard = () => {
               <Button
                 onClick={handleVote}
                 className="w-full bg-primary hover:bg-primary/90"
-                disabled={!selectedCandidate}
+                disabled={!votes.local || !votes.provincial || !votes.federal}
               >
-                Cast Vote ({currentLevel === "local" ? "स्थानीय" : currentLevel === "provincial" ? "प्रदेश" : "संघीय"} तहमा मतदान गर्नुहोस्)
+                Submit All Votes (सबै मतहरू पेश गर्नुहोस्)
               </Button>
             </TabsContent>
           </Tabs>
