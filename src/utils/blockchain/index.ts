@@ -1,4 +1,3 @@
-
 import { VoteVerifier, VerifiedVote } from '../voteVerification';
 import { Block } from './types';
 import { calculateHash, mineBlock } from './blockUtils';
@@ -101,8 +100,12 @@ export class VotingBlockchain {
     };
 
     newBlock.hash = mineBlock(newBlock, this.difficulty);
-    this.blockchainState.addBlock(newBlock);
-    this.voteManager.addVoter(voterId);
+    try {
+      this.voteManager.addVoter(voterId, candidateId);
+      this.blockchainState.addBlock(newBlock);
+    } catch (error) {
+      throw new Error("Voter has already cast their vote");
+    }
   }
 
   public isChainValid(): boolean {
@@ -152,8 +155,12 @@ export class VotingBlockchain {
   }
 
   public resetVotingState(): void {
+    const resetTime = Date.now();
+    console.log('Starting voting reset at:', resetTime);
+    
     this.blockchainState.resetVotingSession();
     this.voteManager.resetVotingSession();
+    
     console.log("Voting state reset: Chain and voted voters cleared");
   }
 

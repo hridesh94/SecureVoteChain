@@ -2,7 +2,7 @@
 import { VerifiedVote, VoteVerifier } from '../voteVerification';
 
 export class VoteManager {
-  private votedVoters: Map<string, number> = new Map();
+  private votedVoters: Map<string, { timestamp: number, votes: Set<string> }> = new Map();
   private _voteVerifier: VoteVerifier;
   private lastResetTimestamp: number;
 
@@ -16,16 +16,25 @@ export class VoteManager {
   }
 
   public hasVoted(voterId: string): boolean {
-    const voterTimestamp = this.votedVoters.get(voterId);
-    return voterTimestamp !== undefined && voterTimestamp >= this.lastResetTimestamp;
+    const voterData = this.votedVoters.get(voterId);
+    return voterData !== undefined && voterData.timestamp >= this.lastResetTimestamp;
   }
 
-  public addVoter(voterId: string): void {
-    this.votedVoters.set(voterId, Date.now());
+  public addVoter(voterId: string, candidateId: string): void {
+    const existingVoter = this.votedVoters.get(voterId);
+    if (existingVoter && existingVoter.timestamp >= this.lastResetTimestamp) {
+      throw new Error("Voter has already cast their vote");
+    }
+
+    this.votedVoters.set(voterId, {
+      timestamp: Date.now(),
+      votes: new Set([candidateId])
+    });
   }
 
   public resetVotingSession(): void {
     this.lastResetTimestamp = Date.now();
+    this.votedVoters.clear();
     console.log("VoteManager: New voting session started at:", this.lastResetTimestamp);
   }
 
