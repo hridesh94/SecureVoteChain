@@ -1,4 +1,3 @@
-
 import { VoteVerifier, VerifiedVote } from '../voteVerification';
 import { Block } from './types';
 import { calculateHash, mineBlock } from './blockUtils';
@@ -180,6 +179,14 @@ export class VotingBlockchain {
 
   public isVotingComplete(): boolean {
     return this.isVotingEnded;
+  }
+
+  public resetVotingState(): void {
+    // Clear all votes except genesis block
+    this.chain = this.chain.slice(0, 1);
+    this.votedVoters.clear();
+    this.isVotingEnded = false;
+    saveChainToStorage(this.chain);
   }
 
   public static getInstance(): VotingBlockchain {

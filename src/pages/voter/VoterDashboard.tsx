@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, User, FileText, HelpCircle } from "lucide-react";
+import { ArrowLeft, User, FileText, HelpCircle, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -116,6 +116,19 @@ const VoterDashboard = () => {
     }
   };
 
+  const handleResetDemo = () => {
+    blockchain.resetVotingState();
+    setHasVoted(false);
+    setVotes(initialVoteState);
+    setSelectedPollingStation(null);
+    setCurrentLevel("local");
+    toast({
+      title: "Demo Reset",
+      description: "Voting state has been reset for demo purposes.",
+      className: "bg-white border-2 border-blue-500 text-blue-900 font-medium shadow-xl",
+    });
+  };
+
   const selectedStation = selectedPollingStation 
     ? mockPollingStations.find(ps => ps.id === selectedPollingStation)
     : null;
@@ -128,19 +141,40 @@ const VoterDashboard = () => {
     : [];
 
   if (hasVoted) {
-    return <VoteSuccess />;
+    return (
+      <div className="relative">
+        <VoteSuccess />
+        <Button
+          onClick={handleResetDemo}
+          className="absolute top-4 right-4 flex items-center gap-2 bg-blue-500 hover:bg-blue-600"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Reset Demo
+        </Button>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-secondary via-secondary/50 to-white/80 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        <Link
-          to="/"
-          className="inline-flex items-center text-primary hover:text-primary/80 mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Home
-        </Link>
+        <div className="flex items-center justify-between mb-8">
+          <Link
+            to="/"
+            className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Link>
+          <Button
+            onClick={handleResetDemo}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Reset Demo
+          </Button>
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
