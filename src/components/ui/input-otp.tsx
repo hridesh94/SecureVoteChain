@@ -54,8 +54,8 @@ const InputOTPSlot = React.forwardRef<React.ElementRef<"div">, InputOTPSlotProps
       const pastedText = e.clipboardData.getData('text/plain')
       const numericOnly = pastedText.replace(/\D/g, '')
       
-      if (numericOnly && inputOTPContext?.handleChange) {
-        inputOTPContext.handleChange(numericOnly)
+      if (numericOnly && inputOTPContext?.onChange) {
+        inputOTPContext.onChange(numericOnly)
       }
     }
 
