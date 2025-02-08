@@ -1,14 +1,30 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { LockKeyhole, Users, Shield, ChevronRight, Check, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [hoveredRole, setHoveredRole] = useState<string | null>(null);
+  const [focusedRole, setFocusedRole] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleRoleSelect = (role: string) => {
+    // Add validation feedback
+    toast({
+      title: `${role.charAt(0).toUpperCase() + role.slice(1)} Portal`,
+      description: `Redirecting to ${role} authentication...`,
+      duration: 2000,
+    });
     navigate(`/auth/${role}`);
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent, role: string) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleRoleSelect(role);
+    }
   };
 
   const features = [
@@ -54,6 +70,8 @@ const Index = () => {
             <div
               key={index}
               className="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-gray-200 transition-all duration-300"
+              role="article"
+              aria-label={`Feature: ${feature.title}`}
             >
               <div className="bg-gray-50 p-3 rounded-xl w-fit mb-4 group-hover:bg-gray-100 transition-colors">
                 {feature.icon}
@@ -70,14 +88,21 @@ const Index = () => {
           <div
             onMouseEnter={() => setHoveredRole("voter")}
             onMouseLeave={() => setHoveredRole(null)}
+            onFocus={() => setFocusedRole("voter")}
+            onBlur={() => setFocusedRole(null)}
             onClick={() => handleRoleSelect("voter")}
+            onKeyPress={(e) => handleKeyPress(e, "voter")}
             className="group cursor-pointer"
+            role="button"
+            tabIndex={0}
+            aria-label="Access Voter Portal"
           >
             <div className={`
               bg-white rounded-2xl p-8 
               border border-gray-100
               transition-all duration-300
-              ${hoveredRole === "voter" ? "shadow-lg border-gray-200" : "shadow-sm"}
+              ${(hoveredRole === "voter" || focusedRole === "voter") ? "shadow-lg border-gray-200" : "shadow-sm"}
+              focus-within:ring-2 focus-within:ring-primary focus-within:border-primary
             `}>
               <div className="flex flex-col items-center text-center">
                 <div className="p-4 rounded-full bg-gray-50 mb-6 group-hover:bg-gray-100 transition-colors">
@@ -100,14 +125,21 @@ const Index = () => {
           <div
             onMouseEnter={() => setHoveredRole("admin")}
             onMouseLeave={() => setHoveredRole(null)}
+            onFocus={() => setFocusedRole("admin")}
+            onBlur={() => setFocusedRole(null)}
             onClick={() => handleRoleSelect("admin")}
+            onKeyPress={(e) => handleKeyPress(e, "admin")}
             className="group cursor-pointer"
+            role="button"
+            tabIndex={0}
+            aria-label="Access Admin Portal"
           >
             <div className={`
               bg-white rounded-2xl p-8 
               border border-gray-100
               transition-all duration-300
-              ${hoveredRole === "admin" ? "shadow-lg border-gray-200" : "shadow-sm"}
+              ${(hoveredRole === "admin" || focusedRole === "admin") ? "shadow-lg border-gray-200" : "shadow-sm"}
+              focus-within:ring-2 focus-within:ring-primary focus-within:border-primary
             `}>
               <div className="flex flex-col items-center text-center">
                 <div className="p-4 rounded-full bg-gray-50 mb-6 group-hover:bg-gray-100 transition-colors">
@@ -128,16 +160,16 @@ const Index = () => {
         </div>
 
         {/* Trust Indicators */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
-          <div className="bg-gray-50 rounded-2xl p-6 text-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20" role="list" aria-label="Trust Indicators">
+          <div className="bg-gray-50 rounded-2xl p-6 text-center" role="listitem">
             <div className="text-3xl font-bold text-gray-900 mb-1">100%</div>
             <div className="text-gray-600">Vote Privacy</div>
           </div>
-          <div className="bg-gray-50 rounded-2xl p-6 text-center">
+          <div className="bg-gray-50 rounded-2xl p-6 text-center" role="listitem">
             <div className="text-3xl font-bold text-gray-900 mb-1">24/7</div>
             <div className="text-gray-600">System Availability</div>
           </div>
-          <div className="bg-gray-50 rounded-2xl p-6 text-center">
+          <div className="bg-gray-50 rounded-2xl p-6 text-center" role="listitem">
             <div className="text-3xl font-bold text-gray-900 mb-1">Instant</div>
             <div className="text-gray-600">Vote Verification</div>
           </div>
@@ -145,7 +177,11 @@ const Index = () => {
 
         {/* Security Badge */}
         <div className="text-center">
-          <div className="inline-flex items-center space-x-2 bg-gray-50 px-6 py-3 rounded-full">
+          <div 
+            className="inline-flex items-center space-x-2 bg-gray-50 px-6 py-3 rounded-full"
+            role="status"
+            aria-label="Security Status"
+          >
             <Shield className="w-5 h-5" />
             <span className="text-sm text-gray-600 font-medium">
               Protected by Advanced Blockchain Technology
