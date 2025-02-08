@@ -1,5 +1,7 @@
 
 import { useState } from "react";
+import { motion } from "framer-motion";
+import { Trophy } from "lucide-react";
 import { mockPollingStations, mockCandidates } from "@/pages/voter/mockData";
 import {
   Select,
@@ -25,12 +27,21 @@ const VotingResults = ({ results }: VotingResultsProps) => {
       candidate.id.startsWith(constituencyId || '')
     );
     
-    return levelCandidates.map(candidate => ({
+    const candidatesWithVotes = levelCandidates.map(candidate => ({
       id: candidate.id,
       name: candidate.name,
       party: candidate.party,
       constituency: candidate.constituency,
       votes: results[candidate.id] || 0,
+    }));
+
+    // Find the highest number of votes
+    const maxVotes = Math.max(...candidatesWithVotes.map(c => c.votes));
+
+    // Mark winners (in case of tie, multiple candidates can be winners)
+    return candidatesWithVotes.map(candidate => ({
+      ...candidate,
+      isWinner: candidate.votes === maxVotes && maxVotes > 0,
     }));
   };
 
@@ -73,20 +84,41 @@ const VotingResults = ({ results }: VotingResultsProps) => {
         </div>
         <div className="space-y-2">
           {getLevelResults(level).map(candidate => (
-            <div 
+            <motion.div 
               key={candidate.id} 
-              className="flex justify-between items-center p-3 bg-primary/5 rounded-lg"
+              className={`flex justify-between items-center p-3 rounded-lg ${
+                candidate.isWinner 
+                  ? "bg-primary/10 border-2 border-primary" 
+                  : "bg-primary/5"
+              }`}
+              animate={candidate.isWinner ? {
+                scale: [1, 1.02, 1],
+                transition: { duration: 0.3 }
+              } : {}}
             >
-              <div>
-                <p className="font-medium">{candidate.name}</p>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-medium">{candidate.name}</p>
+                  {candidate.isWinner && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                    >
+                      <Trophy className="w-5 h-5 text-primary" />
+                    </motion.div>
+                  )}
+                </div>
                 <p className="text-sm text-primary/70">{candidate.party}</p>
                 <p className="text-xs text-primary/50">{candidate.constituency}</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold">{candidate.votes}</span>
+                <span className={`font-semibold ${candidate.isWinner ? "text-primary" : ""}`}>
+                  {candidate.votes}
+                </span>
                 <span className="text-sm text-primary/70">votes</span>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -107,3 +139,4 @@ const VotingResults = ({ results }: VotingResultsProps) => {
 };
 
 export default VotingResults;
+
