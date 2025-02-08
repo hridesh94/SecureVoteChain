@@ -1,6 +1,6 @@
 
 import { motion } from "framer-motion";
-import { CheckCircle, MapPin, Building2, User, FileText } from "lucide-react";
+import { Check, MapPin, Building2, User, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Candidate } from "../types";
 
@@ -32,21 +32,23 @@ const CandidateCard = ({
       `}
       onClick={() => onSelect(candidate.id)}
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-4">
-          <img 
-            src={candidate.photo} 
-            alt={candidate.name}
-            className="w-16 h-16 rounded-full object-cover"
-          />
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{candidate.symbol}</span>
-              <span className="text-xl">{candidate.partyFlag}</span>
-            </div>
+      {isSelected && (
+        <div className="absolute top-4 right-4">
+          <Check className="w-6 h-6 text-primary" />
+        </div>
+      )}
+      <div className="flex items-center gap-4 mb-4">
+        <img 
+          src={candidate.photo} 
+          alt={candidate.name}
+          className="w-16 h-16 rounded-full object-cover"
+        />
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{candidate.symbol}</span>
+            <span className="text-xl">{candidate.partyFlag}</span>
           </div>
         </div>
-        {isSelected && <CheckCircle className="w-5 h-5 text-primary" />}
       </div>
       <h3 className="font-semibold mb-2">{candidate.name}</h3>
       <p className="text-sm text-primary/70 mb-2">{candidate.party}</p>
