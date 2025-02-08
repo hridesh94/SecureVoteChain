@@ -4,7 +4,7 @@ import VotingResults from "@/components/admin/VotingResults";
 import VotingChart from "@/components/admin/VotingChart";
 import SecurityOverview from "@/components/admin/SecurityOverview";
 import VoterList from "@/components/admin/VoterList";
-import { Shield, FileSpreadsheet } from "lucide-react";
+import VoteAudit from "@/components/admin/VoteAudit";
 
 interface DashboardContentProps {
   isVotingActive: boolean;
@@ -34,18 +34,7 @@ const DashboardContent = ({
         remainingVoters={stats.remainingVoters}
       />
       
-      <div className="flex gap-8">
-        <div className="flex items-center gap-4">
-          <button className="bg-primary/90 text-white px-4 py-3 rounded-lg hover:bg-primary transition-colors flex items-center justify-center gap-2">
-            <Shield className="w-4 h-4" />
-            Perform Audit
-          </button>
-          <button className="border border-primary/20 px-4 py-3 rounded-lg hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
-            <FileSpreadsheet className="w-4 h-4" />
-            Export Audit Trail
-          </button>
-        </div>
-      </div>
+      <VoteAudit />
 
       <div className="grid grid-cols-2 gap-8">
         <VotingChart data={votingData} />
