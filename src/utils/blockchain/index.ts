@@ -11,6 +11,7 @@ export class VotingBlockchain {
   private _voteVerifier: VoteVerifier;
   private votedVoters: Set<string> = new Set();
   private isDemoMode: boolean = false;
+  private demoVotedVoters: Set<string> = new Set();
 
   constructor() {
     if (VotingBlockchain.instance) {
@@ -78,13 +79,15 @@ export class VotingBlockchain {
   }
 
   public hasVoted(voterId: string): boolean {
-    return !this.isDemoMode && this.votedVoters.has(voterId);
+    return this.isDemoMode 
+      ? this.demoVotedVoters.has(voterId)
+      : this.votedVoters.has(voterId);
   }
 
   public setDemoMode(isDemo: boolean): void {
     this.isDemoMode = isDemo;
     if (isDemo) {
-      this.votedVoters.clear();
+      this.demoVotedVoters.clear();
     }
   }
 
@@ -124,9 +127,13 @@ export class VotingBlockchain {
 
     newBlock.hash = mineBlock(newBlock, this.difficulty);
     this.chain.push(newBlock);
-    if (!this.isDemoMode) {
+
+    if (this.isDemoMode) {
+      this.demoVotedVoters.add(voterId);
+    } else {
       this.votedVoters.add(voterId);
     }
+
     saveChainToStorage(this.chain);
   }
 
@@ -186,7 +193,6 @@ export class VotingBlockchain {
   public setVotingEnded(ended: boolean): void {
     this.isVotingEnded = ended;
     if (!ended) {
-      // Reset voting state when starting a new voting session
       this.resetVotingState();
     }
   }
@@ -198,6 +204,7 @@ export class VotingBlockchain {
   public resetVotingState(): void {
     this.chain = this.chain.slice(0, 1); // Keep only genesis block
     this.votedVoters.clear();
+    this.demoVotedVoters.clear();
     this.isVotingEnded = false;
     this.isDemoMode = false;
     saveChainToStorage(this.chain);
