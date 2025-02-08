@@ -59,7 +59,7 @@ const VoterDashboard = () => {
         description: "The election voting period has ended. No more votes can be accepted at this time.",
         variant: "destructive",
         duration: 7000, // Show for 7 seconds
-        className: "bg-red-100 border-2 border-red-500 text-red-900 font-medium",
+        className: "bg-white border-2 border-red-500 text-red-900 font-medium shadow-xl",
       });
       return;
     }
@@ -74,7 +74,7 @@ const VoterDashboard = () => {
           description: "You have already cast your vote in this election. Each voter is allowed only one vote.",
           variant: "destructive",
           duration: 5000, // Show for 5 seconds
-          className: "bg-red-100 border-2 border-red-500 text-red-900 font-medium shadow-lg",
+          className: "bg-white border-2 border-red-500 text-red-900 font-medium shadow-xl z-50",
         });
         return;
       }
@@ -233,3 +233,4 @@ const VoterDashboard = () => {
 };
 
 export default VoterDashboard;
+
