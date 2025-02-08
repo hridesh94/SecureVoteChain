@@ -120,6 +120,17 @@ const VoterDashboard = () => {
     return <VoteSuccess />;
   }
 
+  const selectedStation = selectedPollingStation 
+    ? mockPollingStations.find(ps => ps.id === selectedPollingStation)
+    : null;
+
+  const filteredCandidates = selectedStation
+    ? mockCandidates.filter(candidate => 
+        candidate.level === currentLevel && 
+        candidate.id.startsWith(selectedStation.constituencies[currentLevel].id)
+      )
+    : [];
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-secondary via-secondary/50 to-white/80 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
