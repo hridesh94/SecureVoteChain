@@ -64,14 +64,12 @@ const InputOTPSlot = React.forwardRef<
       )}
       {...props}
     >
-      {/* Hidden input for actual value handling */}
       <input
         type="text"
         inputMode="numeric"
         pattern="\d*"
         maxLength={1}
-        className="absolute inset-0 w-full h-full text-center text-2xl font-semibold bg-transparent border-none focus:outline-none focus:ring-0"
-        style={{ caretColor: 'transparent' }}
+        className="absolute inset-0 w-full h-full text-center text-2xl font-semibold text-foreground bg-transparent border-none focus:outline-none focus:ring-0"
         autoComplete="one-time-code"
         disabled={disabled}
         value={slot?.char || ''}
@@ -105,6 +103,31 @@ const InputOTPSlot = React.forwardRef<
               inputs[currentIndex - 1].focus();
             }
           }
+
+          // Handle arrow key navigation
+          if (e.key === "ArrowLeft") {
+            const form = e.currentTarget.form;
+            const inputs = Array.from(form?.elements || []).filter(
+              (el): el is HTMLInputElement => el instanceof HTMLInputElement
+            );
+            const currentIndex = inputs.indexOf(e.currentTarget);
+            
+            if (currentIndex > 0) {
+              inputs[currentIndex - 1].focus();
+            }
+          }
+
+          if (e.key === "ArrowRight") {
+            const form = e.currentTarget.form;
+            const inputs = Array.from(form?.elements || []).filter(
+              (el): el is HTMLInputElement => el instanceof HTMLInputElement
+            );
+            const currentIndex = inputs.indexOf(e.currentTarget);
+            
+            if (currentIndex < inputs.length - 1) {
+              inputs[currentIndex + 1].focus();
+            }
+          }
         }}
         onPaste={(e) => {
           e.preventDefault();
@@ -115,16 +138,6 @@ const InputOTPSlot = React.forwardRef<
           }
         }}
       />
-
-      {/* Visual display of the number or placeholder */}
-      <div
-        className={cn(
-          "pointer-events-none select-none text-2xl font-semibold",
-          slot?.char ? "text-foreground" : "text-muted-foreground/40"
-        )}
-      >
-        {slot?.char || "0"}
-      </div>
 
       {slot?.hasFakeCaret && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -147,4 +160,3 @@ const InputOTPSeparator = React.forwardRef<
 InputOTPSeparator.displayName = "InputOTPSeparator"
 
 export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator }
-
