@@ -13,7 +13,9 @@ import { Candidate } from "./types";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -132,6 +134,21 @@ const VoterDashboard = () => {
     return <VoteSuccess />;
   }
 
+  const getConstituenciesByPollingStation = () => {
+    const constituencies = mockConstituencies[currentLevel];
+    const grouped: { [key: string]: typeof constituencies } = {};
+    
+    constituencies.forEach(constituency => {
+      const pollingStation = constituency.pollingStation || "Other";
+      if (!grouped[pollingStation]) {
+        grouped[pollingStation] = [];
+      }
+      grouped[pollingStation].push(constituency);
+    });
+    
+    return grouped;
+  };
+
   return (
     <div className="min-h-screen w-full bg-secondary p-4">
       <div className="max-w-6xl mx-auto">
@@ -191,7 +208,7 @@ const VoterDashboard = () => {
             </div>
           </div>
 
-          {/* Constituency Selection */}
+          {/* Improved Constituency Selection */}
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
               <Map className="w-5 h-5 text-primary" />
@@ -204,11 +221,22 @@ const VoterDashboard = () => {
               <SelectTrigger className="w-full">
                 <SelectValue placeholder={`Select your ${currentLevel} constituency`} />
               </SelectTrigger>
-              <SelectContent>
-                {mockConstituencies[currentLevel].map((constituency) => (
-                  <SelectItem key={constituency.id} value={constituency.id}>
-                    {constituency.name}
-                  </SelectItem>
+              <SelectContent className="max-h-[300px]">
+                {Object.entries(getConstituenciesByPollingStation()).map(([station, constituencies]) => (
+                  <SelectGroup key={station}>
+                    <SelectLabel className="px-2 py-1.5 text-sm font-semibold text-primary">
+                      {station}
+                    </SelectLabel>
+                    {constituencies.map((constituency) => (
+                      <SelectItem 
+                        key={constituency.id} 
+                        value={constituency.id}
+                        className="px-2 py-1.5 cursor-pointer hover:bg-primary/5"
+                      >
+                        {constituency.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 ))}
               </SelectContent>
             </Select>
