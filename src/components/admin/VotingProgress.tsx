@@ -8,13 +8,13 @@ interface VotingProgressProps {
 
 const VotingProgress = ({ votingProgress, remainingVoters }: VotingProgressProps) => {
   return (
-    <div className="p-6 rounded-lg border border-white/20 backdrop-blur-sm">
+    <div className="p-6 rounded-lg border border-white/20 backdrop-blur-sm mb-8">
       <h3 className="font-semibold mb-4 text-lg flex items-center">
         Voting Progress
       </h3>
       <Progress 
         value={votingProgress} 
-        className="h-3 mb-4"
+        className="h-3 mb-4 w-full bg-secondary"
       />
       <div className="flex justify-between items-center text-sm">
         <p className="text-primary/70">
@@ -29,3 +29,4 @@ const VotingProgress = ({ votingProgress, remainingVoters }: VotingProgressProps
 };
 
 export default VotingProgress;
+

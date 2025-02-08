@@ -4,6 +4,7 @@ import VotingResults from "@/components/admin/VotingResults";
 import VotingChart from "@/components/admin/VotingChart";
 import SecurityOverview from "@/components/admin/SecurityOverview";
 import VoterList from "@/components/admin/VoterList";
+import { Shield, FileSpreadsheet } from "lucide-react";
 
 interface DashboardContentProps {
   isVotingActive: boolean;
@@ -41,10 +42,12 @@ const DashboardContent = ({
           <div className="p-6 rounded-lg border border-white/20 backdrop-blur-sm">
             <h3 className="font-semibold mb-4 text-lg">Vote Audit System</h3>
             <div className="flex flex-col gap-4">
-              <button className="bg-primary/90 text-white px-4 py-2 rounded-lg hover:bg-primary transition-colors">
+              <button className="bg-primary/90 text-white px-4 py-2 rounded-lg hover:bg-primary transition-colors flex items-center justify-center gap-2">
+                <Shield className="w-4 h-4" />
                 Perform Audit
               </button>
-              <button className="border border-primary/20 px-4 py-2 rounded-lg hover:bg-primary/5 transition-colors">
+              <button className="border border-primary/20 px-4 py-2 rounded-lg hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
+                <FileSpreadsheet className="w-4 h-4" />
                 Export Audit Trail
               </button>
             </div>
@@ -67,3 +70,4 @@ const DashboardContent = ({
 };
 
 export default DashboardContent;
+
