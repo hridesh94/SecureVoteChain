@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   ArrowLeft, 
@@ -16,6 +15,7 @@ import {
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { VotingBlockchain } from "@/utils/blockchain";
 import {
   ChartContainer,
   ChartTooltipContent,
@@ -30,11 +30,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+const blockchain = new VotingBlockchain();
+
 const mockStats = {
   totalVoters: 1500,
-  votesCast: 876,
-  remainingVoters: 624,
-  votingProgress: 58.4,
+  votesCast: 0,
+  remainingVoters: 1500,
+  votingProgress: 0,
   activeVoters: 42,
   averageVoteTime: "2.5 min",
   invalidAttempts: 23,
@@ -51,7 +53,30 @@ const votingData = [
 
 const AdminDashboard = () => {
   const [isVotingActive, setIsVotingActive] = useState(true);
+  const [stats, setStats] = useState({
+    totalVoters: 1500,
+    votesCast: 0,
+    remainingVoters: 1500,
+    votingProgress: 0,
+    activeVoters: 42,
+    averageVoteTime: "2.5 min",
+    invalidAttempts: 23,
+  });
   const { toast } = useToast();
+
+  useEffect(() => {
+    const chain = blockchain.getChain();
+    const votesCast = chain.length - 1;
+    const votingProgress = (votesCast / stats.totalVoters) * 100;
+    const remainingVoters = stats.totalVoters - votesCast;
+
+    setStats(prev => ({
+      ...prev,
+      votesCast,
+      remainingVoters,
+      votingProgress,
+    }));
+  }, []);
 
   const handleVotingToggle = () => {
     setIsVotingActive(!isVotingActive);
@@ -64,6 +89,18 @@ const AdminDashboard = () => {
   };
 
   const handleRefreshData = () => {
+    const chain = blockchain.getChain();
+    const votesCast = chain.length - 1;
+    const votingProgress = (votesCast / stats.totalVoters) * 100;
+    const remainingVoters = stats.totalVoters - votesCast;
+
+    setStats(prev => ({
+      ...prev,
+      votesCast,
+      remainingVoters,
+      votingProgress,
+    }));
+
     toast({
       title: "Data Refreshed",
       description: "Latest voting statistics have been loaded.",
@@ -71,9 +108,21 @@ const AdminDashboard = () => {
   };
 
   const handleExportData = () => {
+    const chain = blockchain.getChain();
+    const jsonStr = JSON.stringify(chain, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "voting-blockchain.json";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
     toast({
-      title: "Exporting Data",
-      description: "Voting data export has started.",
+      title: "Export Complete",
+      description: "Blockchain data has been exported successfully.",
     });
   };
 
