@@ -6,6 +6,7 @@ import { VotingBlockchain } from "@/utils/blockchain";
 import DashboardHeader from "@/components/admin/dashboard/DashboardHeader";
 import DashboardStats from "@/components/admin/dashboard/DashboardStats";
 import DashboardContent from "@/components/admin/dashboard/DashboardContent";
+import VoterStats from "@/components/admin/VoterStats";
 
 const blockchain = VotingBlockchain.getInstance();
 
@@ -30,6 +31,7 @@ const AdminDashboard = () => {
     activeVoters: 42,
     averageVoteTime: "2.5 min",
     invalidAttempts: 23,
+    blockedVoters: 5,
   });
   const { toast } = useToast();
 
@@ -50,6 +52,13 @@ const AdminDashboard = () => {
       const results = blockchain.getVotingResults();
       setVotingResults(results);
     }
+
+    // Update stats every 30 seconds
+    const interval = setInterval(() => {
+      handleRefreshData();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [isVotingActive]);
 
   const handleVotingToggle = () => {
@@ -107,20 +116,28 @@ const AdminDashboard = () => {
   };
 
   const handleExportData = () => {
-    const data = isVotingActive 
-      ? blockchain.getChain().map(block => ({
-          timestamp: block.timestamp,
-          hash: block.hash,
-          previousHash: block.previousHash
-        }))
-      : blockchain.getChain();
+    const data = {
+      blockchain: blockchain.getChain(),
+      votingResults: !isVotingActive ? votingResults : null,
+      stats: {
+        totalVoters: stats.totalVoters,
+        votesCast: stats.votesCast,
+        remainingVoters: stats.remainingVoters,
+        votingProgress: stats.votingProgress,
+        activeVoters: stats.activeVoters,
+        averageVoteTime: stats.averageVoteTime,
+        invalidAttempts: stats.invalidAttempts,
+        blockedVoters: stats.blockedVoters,
+      },
+      exportTimestamp: new Date().toISOString(),
+    };
 
     const jsonStr = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "voting-blockchain.json";
+    link.download = `voting-data-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -128,7 +145,7 @@ const AdminDashboard = () => {
 
     toast({
       title: "Export Complete",
-      description: "Blockchain data has been exported successfully.",
+      description: "Voting data has been exported successfully.",
     });
   };
 
@@ -157,6 +174,13 @@ const AdminDashboard = () => {
             onBlock={handleBlockVoter}
             onToggleResults={handleToggleResults}
             onVotingToggle={handleVotingToggle}
+          />
+
+          <VoterStats
+            totalRegistered={stats.totalVoters}
+            activeVoters={stats.activeVoters}
+            blockedVoters={stats.blockedVoters}
+            averageVoteTime={stats.averageVoteTime}
           />
 
           <DashboardStats stats={stats} />
