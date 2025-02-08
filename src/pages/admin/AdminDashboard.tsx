@@ -46,12 +46,10 @@ const AdminDashboard = () => {
         averageVoteTime={stats.averageVoteTime}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <VotingProgress
-          votingProgress={stats.votingProgress}
-          remainingVoters={stats.remainingVoters}
-        />
-      </div>
+      <VotingProgress
+        votingProgress={stats.votingProgress}
+        remainingVoters={stats.remainingVoters}
+      />
 
       <DashboardContent
         isVotingActive={isVotingActive}
