@@ -1,23 +1,30 @@
+
 import { VoteVerifier, VerifiedVote } from '../voteVerification';
 import { Block } from './types';
 import { calculateHash, mineBlock } from './blockUtils';
-import { loadChainFromStorage, saveChainToStorage } from './storage';
+import { VoteManager } from './VoteManager';
+import { BlockchainState } from './BlockchainState';
+import { VotingResults } from './VotingResults';
 
 export class VotingBlockchain {
-  private chain: Block[] = [];
   private difficulty: number = 4;
-  private isVotingEnded: boolean = false;
   private static instance: VotingBlockchain;
-  private _voteVerifier: VoteVerifier;
-  private votedVoters: Set<string> = new Set();
+  private voteManager: VoteManager;
+  private blockchainState: BlockchainState;
+  private votingResults: VotingResults;
 
   constructor() {
     if (VotingBlockchain.instance) {
       return VotingBlockchain.instance;
     }
-    this._voteVerifier = VoteVerifier.getInstance();
-    this.loadChain();
-    if (this.chain.length === 0) {
+    this.voteManager = new VoteManager();
+    this.blockchainState = new BlockchainState();
+    this.votingResults = new VotingResults(
+      () => this.blockchainState.getChain(),
+      () => this.blockchainState.isVotingComplete()
+    );
+
+    if (this.blockchainState.getChain().length === 0) {
       this.createGenesisBlock();
     }
     this.initializeVotedVoters();
@@ -25,26 +32,15 @@ export class VotingBlockchain {
   }
 
   private initializeVotedVoters(): void {
-    this.chain.forEach(block => {
+    this.blockchainState.getChain().forEach(block => {
       if (block.vote.voterId !== "genesis") {
-        this.votedVoters.add(block.vote.voterId);
+        this.voteManager.addVoter(block.vote.voterId);
       }
     });
   }
 
   get voteVerifier(): VoteVerifier {
-    return this._voteVerifier;
-  }
-
-  private loadChain(): void {
-    const loadedChain = loadChainFromStorage();
-    if (loadedChain) {
-      this.chain = loadedChain;
-      if (!this.isChainValid()) {
-        console.error('Loaded chain is invalid');
-        this.chain = [];
-      }
-    }
+    return this.voteManager.voteVerifier;
   }
 
   private createGenesisBlock(): void {
@@ -68,20 +64,19 @@ export class VotingBlockchain {
     };
     
     genesisBlock.hash = calculateHash(genesisBlock);
-    this.chain.push(genesisBlock);
-    saveChainToStorage(this.chain);
+    this.blockchainState.addBlock(genesisBlock);
   }
 
   public getLatestBlock(): Block {
-    return this.chain[this.chain.length - 1];
+    return this.blockchainState.getLatestBlock();
   }
 
   public hasVoted(voterId: string): boolean {
-    return this.votedVoters.has(voterId);
+    return this.voteManager.hasVoted(voterId);
   }
 
   public addBlock(candidateId: string, voterId: string): void {
-    if (this.isVotingEnded) {
+    if (this.blockchainState.isVotingComplete()) {
       throw new Error("Voting has ended");
     }
 
@@ -89,8 +84,8 @@ export class VotingBlockchain {
       throw new Error("Voter has already cast their vote");
     }
 
-    const signature = this.voteVerifier.signVote(candidateId, voterId);
-    if (!this.voteVerifier.verifyVoteTimestamp(signature.timestamp)) {
+    const signature = this.voteManager.signVote(candidateId, voterId);
+    if (!this.voteManager.verifyVoteTimestamp(signature.timestamp)) {
       throw new Error("Vote timestamp verification failed");
     }
 
@@ -100,7 +95,7 @@ export class VotingBlockchain {
       signature
     };
 
-    if (!this.voteVerifier.verifyVote(verifiedVote)) {
+    if (!this.voteManager.verifyVoteSignature(verifiedVote)) {
       throw new Error("Vote signature verification failed");
     }
 
@@ -115,15 +110,15 @@ export class VotingBlockchain {
     };
 
     newBlock.hash = mineBlock(newBlock, this.difficulty);
-    this.chain.push(newBlock);
-    this.votedVoters.add(voterId);
-    saveChainToStorage(this.chain);
+    this.blockchainState.addBlock(newBlock);
+    this.voteManager.addVoter(voterId);
   }
 
   public isChainValid(): boolean {
-    for (let i = 1; i < this.chain.length; i++) {
-      const currentBlock = this.chain[i];
-      const previousBlock = this.chain[i - 1];
+    const chain = this.blockchainState.getChain();
+    for (let i = 1; i < chain.length; i++) {
+      const currentBlock = chain[i];
+      const previousBlock = chain[i - 1];
 
       if (currentBlock.hash !== calculateHash(currentBlock)) {
         return false;
@@ -135,7 +130,7 @@ export class VotingBlockchain {
 
       if (i === 0) continue;
 
-      if (!this.voteVerifier.verifyVote(currentBlock.vote)) {
+      if (!this.voteManager.verifyVoteSignature(currentBlock.vote)) {
         return false;
       }
     }
@@ -143,52 +138,32 @@ export class VotingBlockchain {
   }
 
   public getChain(): Block[] {
-    return this.chain;
+    return this.blockchainState.getChain();
   }
 
   public getVotingResults(): { [candidateId: string]: number } {
-    if (!this.isVotingEnded) {
-      return {};
-    }
-
-    const results: { [candidateId: string]: number } = {};
-    this.chain.forEach((block) => {
-      if (block.vote.candidateId !== "genesis") {
-        results[block.vote.candidateId] = (results[block.vote.candidateId] || 0) + 1;
-      }
-    });
-    return results;
+    return this.votingResults.getResults();
   }
 
   public getAnonymizedVotes(): { timestamp: number; candidateId: string }[] {
-    if (!this.isVotingEnded) {
-      return [];
-    }
-
-    return this.chain
-      .filter(block => block.vote.candidateId !== "genesis")
-      .map(block => ({
-        timestamp: block.timestamp,
-        candidateId: block.vote.candidateId
-      }));
+    return this.votingResults.getAnonymizedVotes();
   }
 
   public setVotingEnded(ended: boolean): void {
-    this.isVotingEnded = ended;
+    this.blockchainState.setVotingEnded(ended);
     if (!ended) {
       this.resetVotingState();
     }
   }
 
   public isVotingComplete(): boolean {
-    return this.isVotingEnded;
+    return this.blockchainState.isVotingComplete();
   }
 
   public resetVotingState(): void {
-    this.chain = this.chain.slice(0, 1);
-    this.votedVoters.clear();
-    this.isVotingEnded = false;
-    saveChainToStorage(this.chain);
+    this.blockchainState.resetChain();
+    this.voteManager.clearVotedVoters();
+    this.blockchainState.setVotingEnded(false);
     console.log("Voting state reset: Chain and voted voters cleared");
   }
 
