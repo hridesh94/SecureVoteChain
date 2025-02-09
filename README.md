@@ -1,4 +1,4 @@
-# Secure Vote Chain
+# Secure Vote Chain: Blockchain Based Voting System
 
 Experience the future of voting with our blockchain-powered platform. Secure, transparent, and accessible voting for everyone.
 
