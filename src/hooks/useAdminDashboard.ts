@@ -62,32 +62,12 @@ export const useAdminDashboard = () => {
     return () => clearInterval(interval);
   }, [isVotingActive, stats.totalVoters]);
 
-  const resetStats = () => {
-    setStats({
-      totalVoters: 1500,
-      votesCast: 0,
-      votingProgress: 0,
-      remainingVoters: 1500,
-      activeVoters: 42,
-      averageVoteTime: "2.5 min",
-      invalidAttempts: 0,
-      blockedVoters: 0,
-      lastVoteTimestamp: null,
-      hourlyVoteRate: 0,
-    });
-    setVotingResults({});
-  };
-
   const handleVotingToggle = () => {
     const newVotingState = !isVotingActive;
     setIsVotingActive(newVotingState);
     blockchain.setVotingEnded(!newVotingState);
     
-    if (newVotingState) {
-      // Reset stats when starting a new voting session
-      resetStats();
-      setShowResults(false);
-    } else {
+    if (!newVotingState) {
       const results = blockchain.getVotingResults();
       setVotingResults(results);
     }
@@ -95,7 +75,7 @@ export const useAdminDashboard = () => {
     toast({
       title: newVotingState ? "Voting Started" : "Voting Ended",
       description: newVotingState
-        ? "A new voting session has started. All voter data has been reset."
+        ? "The voting process has been started."
         : "The voting process has ended. Results are now available.",
     });
   };
