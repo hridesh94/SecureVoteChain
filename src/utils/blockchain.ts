@@ -16,12 +16,15 @@ export class VotingBlockchain {
   private isVotingEnded: boolean = false;
   private static instance: VotingBlockchain;
   private _voteVerifier: VoteVerifier;
+  private voterRegistry: Set<string> = new Set();
+  private sessionStartTime: number;
 
   constructor() {
     if (VotingBlockchain.instance) {
       return VotingBlockchain.instance;
     }
     this._voteVerifier = VoteVerifier.getInstance();
+    this.sessionStartTime = Date.now();
     this.loadChain();
     if (this.chain.length === 0) {
       this.createGenesisBlock();
@@ -101,6 +104,10 @@ export class VotingBlockchain {
       throw new Error("Voting has ended");
     }
 
+    if (this.hasVoted(voterId)) {
+      throw new Error("Voter has already cast their vote");
+    }
+
     // Create and verify vote signature
     const signature = this.voteVerifier.signVote(candidateId, voterId);
     if (!this.voteVerifier.verifyVoteTimestamp(signature.timestamp)) {
@@ -130,6 +137,7 @@ export class VotingBlockchain {
 
     newBlock.hash = this.mineBlock(newBlock);
     this.chain.push(newBlock);
+    this.voterRegistry.add(voterId);
     this.saveChain();
   }
 
@@ -204,10 +212,19 @@ export class VotingBlockchain {
 
   public setVotingEnded(ended: boolean): void {
     this.isVotingEnded = ended;
+    if (!ended) {
+      // Clear voter registry and start new session when voting is restarted
+      this.voterRegistry.clear();
+      this.sessionStartTime = Date.now();
+    }
   }
 
   public isVotingComplete(): boolean {
     return this.isVotingEnded;
+  }
+
+  public hasVoted(voterId: string): boolean {
+    return this.voterRegistry.has(voterId);
   }
 
   // Singleton instance getter

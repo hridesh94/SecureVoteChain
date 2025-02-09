@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, User, FileText, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -32,7 +33,15 @@ const VoterDashboard = () => {
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [currentLevel, setCurrentLevel] = useState<"local" | "provincial" | "federal">("local");
   const [showInstructions, setShowInstructions] = useState(true);
+  const [voterId] = useState(`V${Date.now()}`); // Generate voterId once when component mounts
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if user has already voted when component mounts
+    if (blockchain.hasVoted(voterId)) {
+      setAlreadyVoted(true);
+    }
+  }, [voterId]);
 
   const handlePollingStationSelect = (stationId: string) => {
     setSelectedPollingStation(stationId);
@@ -63,15 +72,8 @@ const VoterDashboard = () => {
     }
 
     try {
-      const voterId = `V${Date.now()}`;
-      
       // Check if voter has already voted
-      const chain = blockchain.getChain();
-      const hasAlreadyVoted = chain.some(block => 
-        block.vote.voterId === voterId
-      );
-
-      if (hasAlreadyVoted) {
+      if (blockchain.hasVoted(voterId)) {
         setAlreadyVoted(true);
         return;
       }
@@ -95,11 +97,13 @@ const VoterDashboard = () => {
         chain: blockchain.getChain()
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "There was an error recording your votes. Please try again.",
-        variant: "destructive",
-      });
+      if (error instanceof Error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
       console.error("Voting error:", error);
     }
   };
