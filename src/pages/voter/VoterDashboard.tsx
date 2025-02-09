@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, User, FileText, HelpCircle } from "lucide-react";
@@ -33,11 +32,10 @@ const VoterDashboard = () => {
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [currentLevel, setCurrentLevel] = useState<"local" | "provincial" | "federal">("local");
   const [showInstructions, setShowInstructions] = useState(true);
-  const [voterId] = useState(`V${Date.now()}`); // Generate voterId once when component mounts
+  const [voterId] = useState(`V${Date.now()}_${Math.random().toString(36).substr(2, 9)}`); // Generate voterId once when component mounts
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user has already voted when component mounts
     if (blockchain.hasVoted(voterId)) {
       setAlreadyVoted(true);
     }
@@ -227,7 +225,7 @@ const VoterDashboard = () => {
                 className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg font-medium rounded-lg shadow-lg transition-all duration-200 disabled:opacity-50"
                 disabled={!votes.local || !votes.provincial || !votes.federal}
               >
-                Submit All Votes (सबै मतहरू पेश गर्नुहोस्)
+                Submit All Votes (सबै मतहरू पेश गर्नुह��स्)
               </Button>
             </>
           )}
