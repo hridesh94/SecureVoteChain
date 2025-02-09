@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowLeft, User, FileText, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,35 +15,36 @@ import VotingInstructions from "./components/VotingInstructions";
 
 const blockchain = VotingBlockchain.getInstance();
 
-type VoteLevel = "local" | "provincial" | "federal";
-type VoteState = Record<VoteLevel, string | null>;
-
-const initialVoteState: VoteState = {
-  local: null,
-  provincial: null,
-  federal: null,
-};
-
 const VoterDashboard = () => {
   const [selectedPollingStation, setSelectedPollingStation] = useState<string | null>(null);
-  const [votes, setVotes] = useState<VoteState>(initialVoteState);
+  const [votes, setVotes] = useState<{
+    local: string | null;
+    provincial: string | null;
+    federal: string | null;
+  }>({
+    local: null,
+    provincial: null,
+    federal: null,
+  });
+  
   const [hasVoted, setHasVoted] = useState(false);
   const [showDetails, setShowDetails] = useState<string | null>(null);
-  const [currentLevel, setCurrentLevel] = useState<VoteLevel>("local");
+  const [currentLevel, setCurrentLevel] = useState<"local" | "provincial" | "federal">("local");
   const [showInstructions, setShowInstructions] = useState(true);
-  const [voterId] = useState<string>(`V${Date.now()}`);
   const { toast } = useToast();
 
   const handlePollingStationSelect = (stationId: string) => {
     setSelectedPollingStation(stationId);
-    setVotes(initialVoteState);
-    setCurrentLevel("local");
+    // Reset votes when polling station changes
+    setVotes({
+      local: null,
+      provincial: null,
+      federal: null,
+    });
   };
 
-  const handleVote = async () => {
-    const areAllVotesSubmitted = Object.values(votes).every(vote => vote !== null);
-    
-    if (!areAllVotesSubmitted) {
+  const handleVote = () => {
+    if (!votes.local || !votes.provincial || !votes.federal) {
       toast({
         title: "Incomplete Votes",
         description: "Please select a candidate for each level (Local, Provincial, and Federal) before submitting.",
@@ -62,14 +63,12 @@ const VoterDashboard = () => {
     }
 
     try {
-      // Use Promise.all to handle multiple blockchain transactions
-      await Promise.all(
-        Object.entries(votes).map(([level, candidateId]) => {
-          if (candidateId) {
-            return blockchain.addBlock(candidateId, voterId);
-          }
-        })
-      );
+      const voterId = `V${Date.now()}`;
+      Object.entries(votes).forEach(([level, candidateId]) => {
+        if (candidateId) {
+          blockchain.addBlock(candidateId, voterId);
+        }
+      });
       
       setHasVoted(true);
       toast({
@@ -85,7 +84,7 @@ const VoterDashboard = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "You have already voted. धन्यवाद! (Thank you!) ",
+        description: "There was an error recording your votes. Please try again.",
         variant: "destructive",
       });
       console.error("Voting error:", error);
@@ -103,51 +102,44 @@ const VoterDashboard = () => {
       description: `Candidate selected for ${currentLevel} level. You can now proceed to the next level.`,
     });
 
-    // Use a lookup table for level transitions
-    const nextLevel: Record<VoteLevel, VoteLevel | null> = {
-      local: "provincial",
-      provincial: "federal",
-      federal: null
-    };
-
-    const next = nextLevel[currentLevel];
-    if (next) {
-      setCurrentLevel(next);
+    if (currentLevel === "local") {
+      setCurrentLevel("provincial");
+    } else if (currentLevel === "provincial") {
+      setCurrentLevel("federal");
     }
   };
-
-  if (hasVoted) {
-    return <VoteSuccess />;
-  }
 
   const selectedStation = selectedPollingStation 
     ? mockPollingStations.find(ps => ps.id === selectedPollingStation)
     : null;
 
-  const filteredCandidates = selectedStation
-    ? mockCandidates.filter(candidate => 
-        candidate.level === currentLevel && 
-        candidate.id.startsWith(selectedStation.constituencies[currentLevel].id)
-      )
-    : [];
+  const filteredCandidates = mockCandidates.filter(
+    candidate => {
+      if (!selectedStation) return false;
+      return candidate.level === currentLevel && 
+             candidate.id.startsWith(selectedStation.constituencies[currentLevel].id);
+    }
+  );
+
+  if (hasVoted) {
+    return <VoteSuccess />;
+  }
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-secondary via-secondary/50 to-white/80 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <Link
-            to="/"
-            className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Link>
-        </div>
+        <Link
+          to="/"
+          className="inline-flex items-center text-primary hover:text-primary/80 mb-8 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Home
+        </Link>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          transition={{ duration: 0.6 }}
           className="bg-white backdrop-blur-md rounded-xl p-6 sm:p-8 border border-primary/10 shadow-xl"
         >
           <div className="flex items-center justify-between mb-8">
@@ -167,33 +159,26 @@ const VoterDashboard = () => {
             </Button>
           </div>
 
-          <AnimatePresence>
-            {showInstructions && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="mb-8"
-              >
-                <VotingInstructions currentLevel={currentLevel} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {selectedPollingStation && (
+          {showInstructions && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
               className="mb-8"
             >
+              <VotingInstructions currentLevel={currentLevel} />
+            </motion.div>
+          )}
+
+          {selectedPollingStation && (
+            <div className="mb-8">
               <ProgressTracker 
                 currentLevel={currentLevel}
                 votes={votes}
                 setCurrentLevel={setCurrentLevel}
               />
-            </motion.div>
+            </div>
           )}
 
           <div className="mb-8">
@@ -204,11 +189,7 @@ const VoterDashboard = () => {
           </div>
 
           {selectedPollingStation && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
+            <>
               <div className="mb-8">
                 <CandidateList
                   candidates={filteredCandidates}
@@ -227,7 +208,7 @@ const VoterDashboard = () => {
               >
                 Submit All Votes (सबै मतहरू पेश गर्नुहोस्)
               </Button>
-            </motion.div>
+            </>
           )}
         </motion.div>
       </div>
@@ -236,3 +217,4 @@ const VoterDashboard = () => {
 };
 
 export default VoterDashboard;
+
