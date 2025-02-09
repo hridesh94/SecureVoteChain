@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, User, FileText, HelpCircle } from "lucide-react";
@@ -8,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { VotingBlockchain } from "@/utils/blockchain";
 import { mockCandidates, mockPollingStations } from "./mockData";
 import VoteSuccess from "./components/VoteSuccess";
+import AlreadyVoted from "./components/AlreadyVoted";
 import ProgressTracker from "./components/ProgressTracker";
 import ConstituencySelector from "./components/ConstituencySelector";
 import CandidateList from "./components/CandidateList";
@@ -28,6 +28,7 @@ const VoterDashboard = () => {
   });
   
   const [hasVoted, setHasVoted] = useState(false);
+  const [alreadyVoted, setAlreadyVoted] = useState(false);
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [currentLevel, setCurrentLevel] = useState<"local" | "provincial" | "federal">("local");
   const [showInstructions, setShowInstructions] = useState(true);
@@ -35,7 +36,6 @@ const VoterDashboard = () => {
 
   const handlePollingStationSelect = (stationId: string) => {
     setSelectedPollingStation(stationId);
-    // Reset votes when polling station changes
     setVotes({
       local: null,
       provincial: null,
@@ -64,6 +64,19 @@ const VoterDashboard = () => {
 
     try {
       const voterId = `V${Date.now()}`;
+      
+      // Check if voter has already voted
+      const chain = blockchain.getChain();
+      const hasAlreadyVoted = chain.some(block => 
+        block.vote.voterId === voterId
+      );
+
+      if (hasAlreadyVoted) {
+        setAlreadyVoted(true);
+        return;
+      }
+
+      // Record votes if not voted before
       Object.entries(votes).forEach(([level, candidateId]) => {
         if (candidateId) {
           blockchain.addBlock(candidateId, voterId);
@@ -109,6 +122,14 @@ const VoterDashboard = () => {
     }
   };
 
+  if (alreadyVoted) {
+    return <AlreadyVoted />;
+  }
+
+  if (hasVoted) {
+    return <VoteSuccess />;
+  }
+
   const selectedStation = selectedPollingStation 
     ? mockPollingStations.find(ps => ps.id === selectedPollingStation)
     : null;
@@ -120,10 +141,6 @@ const VoterDashboard = () => {
              candidate.id.startsWith(selectedStation.constituencies[currentLevel].id);
     }
   );
-
-  if (hasVoted) {
-    return <VoteSuccess />;
-  }
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-secondary via-secondary/50 to-white/80 p-4 sm:p-6">
@@ -217,4 +234,3 @@ const VoterDashboard = () => {
 };
 
 export default VoterDashboard;
-
